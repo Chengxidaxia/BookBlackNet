@@ -1,0 +1,75 @@
+# ============================================================
+# netlify.toml — BookBlackNet（群书阁独立站）
+# 用法：Netlify 新建站点 → Base directory 填 book（若把 book/
+#      的内容直接放到仓库根则填 "/"）→ 读取本文件 → 发布。
+# 无构建步骤：publish = "." 即 Base directory 本身。
+# 后端不在此仓库：发布走 GitHub Contents API，或你自己的 CF Worker。
+# ============================================================
+
+[build]
+  publish = "."
+  command = ""
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[dev]
+  command = "python -m http.server 8888 --directory ."
+  targetPort = 8888
+  port = 8888
+  framework = "#static"
+  autoLaunch = false
+
+# ------------------------------------------------------------
+# 重定向
+# ------------------------------------------------------------
+[[redirects]]
+  from = "/read"
+  to = "/read.html"
+  status = 200
+
+[[redirects]]
+  from = "/write"
+  to = "/write.html"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/404.html"
+  status = 404
+
+# ------------------------------------------------------------
+# 响应头
+# ------------------------------------------------------------
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Frame-Options = "SAMEORIGIN"
+    Permissions-Policy = "geolocation=(), microphone=(), camera=()"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# 书籍密文：短缓存 + 强制二进制
+[[headers]]
+  for = "/docs/books/*"
+  [headers.values]
+    Cache-Control = "public, max-age=60"
+    Content-Type = "application/octet-stream"
+    Content-Disposition = "inline"
+
+# 书目索引更靠后 ⇒ 覆盖上一条的 60 秒缓存
+[[headers]]
+  for = "/docs/books/index.json"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+    Content-Type = "application/json; charset=utf-8"

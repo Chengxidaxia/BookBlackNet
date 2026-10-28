@@ -1,0 +1,82 @@
+{
+  "format": "bookblacknet.index",
+  "v": 1,
+  "updatedAt": "2026-10-28T14:12:24.303Z",
+  "books": [
+    {
+      "id": "bk_sample_longnight",
+      "title": "长夜将明",
+      "author": "沈砚",
+      "category": "悬疑",
+      "tags": [
+        "民俗",
+        "群像",
+        "慢热"
+      ],
+      "status": "ongoing",
+      "visibility": "public",
+      "intro": "县城的灯一盏一盏灭下去，最后只剩守夜人的那扇窗。他记下每一盏灯熄灭的时间，也记下每一个没能走出长夜的人。",
+      "createdAt": "2026-09-02T10:00:00.000Z",
+      "updatedAt": "2026-10-21T21:40:00.000Z",
+      "cover": {
+        "type": "letter",
+        "from": "#3f4a58",
+        "to": "#1c2229",
+        "text": "长"
+      },
+      "chapters": 3,
+      "words": 1244,
+      "file": "bk_sample_longnight.book"
+    },
+    {
+      "id": "bk_sample_bookshop",
+      "title": "旧书店的第七个夏天",
+      "author": "林见白",
+      "category": "都市",
+      "tags": [
+        "治愈",
+        "日常",
+        "小城"
+      ],
+      "status": "ongoing",
+      "visibility": "public",
+      "intro": "一间开在巷口二十年的旧书店，一个每年夏天都来借同一本书的女孩。第七年，她终于把书还了回来。",
+      "createdAt": "2026-10-01T09:00:00.000Z",
+      "updatedAt": "2026-10-24T18:20:00.000Z",
+      "cover": {
+        "type": "letter",
+        "from": "#6b5340",
+        "to": "#31241a",
+        "text": "旧"
+      },
+      "chapters": 2,
+      "words": 937,
+      "file": "bk_sample_bookshop.book"
+    },
+    {
+      "id": "bk_sample_starmap",
+      "title": "星图之外",
+      "author": "K. 陆",
+      "category": "科幻",
+      "tags": [
+        "硬科幻",
+        "太空",
+        "短篇"
+      ],
+      "status": "done",
+      "visibility": "public",
+      "intro": "导航员在第七次跃迁后发现，星图上多了一颗不该存在的恒星。它正以每秒三十公里的速度，朝着飞船驶来。",
+      "createdAt": "2026-08-11T12:00:00.000Z",
+      "updatedAt": "2026-09-30T20:05:00.000Z",
+      "cover": {
+        "type": "letter",
+        "from": "#37506e",
+        "to": "#1a283a",
+        "text": "星"
+      },
+      "chapters": 3,
+      "words": 1000,
+      "file": "bk_sample_starmap.book"
+    }
+  ]
+}
