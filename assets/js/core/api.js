@@ -103,28 +103,59 @@ window.BKN = window.BKN || {};
   /* ---------------- 书库读取 ---------------- */
   let _idx = [];   // 最近一次成功读到的书目，供版本戳复用
 
+  /** 内容像不像一个 JSON 文件（挡掉 404 页 / SPA 的 HTML 兜底页） */
+  const looksJSON = txt => !!txt && txt.replace(/^\uFEFF/, '').trim()[0] === '{';
+
   /**
-   * 读取书目索引。顺序：同源 → jsDelivr 各节点 → raw.githubusercontent。
+   * CDN 多节点并发竞速：谁先成功就用谁。
+   * 实测国内 cdn.jsdelivr.net / fastly 经常整段超时，串行会白等十几秒；
+   * 并发之后总耗时 = 最快节点的耗时，慢节点不影响。
+   */
+  function raceText(list) {
+    if (!list.length) return Promise.reject(new Error('未配置 CDN 节点'));
+    return Promise.any(list.map(async c => ({
+      url: c.url,
+      src: c.src,
+      txt: await getText(c.url)
+    })));
+  }
+
+  function parseIndex(txt) {
+    const data = JSON.parse(txt);
+    const books = Array.isArray(data) ? data : (data && data.books);
+    return Array.isArray(books) ? books.filter(b => b && b.id) : null;
+  }
+
+  /**
+   * 读取书目索引：同源 →（jsDelivr 各节点并发）→ raw.githubusercontent。
    * @param {{stamp?:string}} [opt] 传入固定戳可强制走某个缓存版本
    * @returns {Promise<{books:Array, source:string, url:string}>}
    */
   async function loadIndex(opt) {
     const st = (opt && opt.stamp) || stamp();
-    const list = [{ url: CFG.INDEX_FILE + '?v=' + st, src: 'site' }];
-    cdnBases().forEach(b => list.push({ url: b + '/' + CFG.INDEX_FILE + '?v=' + st, src: 'cdn' }));
-    list.push({ url: rawUrl(CFG.INDEX_FILE) + '?v=' + st, src: 'raw' });
 
-    for (const c of list) {
-      try {
-        // 同源通常几毫秒就有结果；给了 CDN 就没必要长等
-        const txt = await getText(c.url, siteTimeout());
-        const data = JSON.parse(txt);
-        const books = Array.isArray(data) ? data : (data && data.books);
-        if (!Array.isArray(books)) continue;
-        _idx = books.filter(b => b && b.id);
-        return { books: _idx, source: c.src, url: c.url };
-      } catch (e) { /* 换下一个源 */ }
-    }
+    // ① 同源：几毫秒就有结果，失败也很快
+    const siteUrl = CFG.INDEX_FILE + '?v=' + st;
+    try {
+      const books = parseIndex(await getText(siteUrl, siteTimeout()));
+      if (books) { _idx = books; return { books, source: 'site', url: siteUrl }; }
+    } catch (e) { /* 下一层 */ }
+
+    // ② CDN 并发竞速
+    const cdnList = cdnBases().map(b => ({ url: b + '/' + CFG.INDEX_FILE + '?v=' + st, src: 'cdn' }));
+    try {
+      const hit = await raceText(cdnList);
+      const books = parseIndex(hit.txt);
+      if (books) { _idx = books; return { books, source: 'cdn', url: hit.url }; }
+    } catch (e) { /* 下一层 */ }
+
+    // ③ raw 兜底
+    const rawU = rawUrl(CFG.INDEX_FILE) + '?v=' + st;
+    try {
+      const books = parseIndex(await getText(rawU));
+      if (books) { _idx = books; return { books, source: 'raw', url: rawU }; }
+    } catch (e) { /* 全挂 */ }
+
     _idx = [];
     return { books: [], source: 'none', url: '' };
   }
@@ -143,26 +174,28 @@ window.BKN = window.BKN || {};
   }
   const bookUrl = id => bookPath(id) + '?v=' + (verOf(id) || stamp());
 
-  /** 取回 .book 文本。顺序与 loadIndex 一致，任一源成功即返回。 */
+  /** 取回 .book 文本。层级与 loadIndex 一致。 */
   async function fetchBook(id, ver) {
     const p = bookPath(id);
     const v = ver || verOf(id) || stamp();
-    const list = [{ url: p + '?v=' + v, src: 'site' }];
-    cdnBases().forEach(b => list.push({ url: b + '/' + p + '?v=' + v, src: 'cdn' }));
-    list.push({ url: rawUrl(p) + '?v=' + v, src: 'raw' });
 
-    let lastErr = null;
-    for (const c of list) {
-      try {
-        const txt = await getText(c.url, siteTimeout());
-        if (!txt || txt.replace(/^\uFEFF/, '').trim()[0] !== '{') {
-          lastErr = new Error('返回内容不是 .book');
-          continue;
-        }
-        return txt;
-      } catch (e) { lastErr = e; }
-    }
-    throw lastErr || new Error('无法获取书籍文件');
+    const siteUrl = p + '?v=' + v;
+    try {
+      const txt = await getText(siteUrl, siteTimeout());
+      if (looksJSON(txt)) return txt;
+    } catch (e) { /* 下一层 */ }
+
+    try {
+      const hit = await raceText(cdnBases().map(b => ({ url: b + '/' + p + '?v=' + v, src: 'cdn' })));
+      if (looksJSON(hit.txt)) return hit.txt;
+    } catch (e) { /* 下一层 */ }
+
+    try {
+      const txt = await getText(rawUrl(p) + '?v=' + v);
+      if (looksJSON(txt)) return txt;
+    } catch (e) { /* 全挂 */ }
+
+    throw new Error('无法获取书籍文件（同源 / jsDelivr / raw 均失败）');
   }
 
   /* ---------------- GitHub 底层 ---------------- */
