@@ -141,12 +141,14 @@ Netlify 新建站点时 **Base directory 填 `book`**（Netlify 只读 base 目�
 
 ### 书籍与站点分仓（jsDelivr）
 
-读书不强制同源：`assets/js/core/api.js` 按 **同源 → jsDelivr（三个节点）→ raw.githubusercontent**
-顺序取 `index.json` 与 `.book`，任一成功即返回，都有超时保护。
+读书不强制同源：`assets/js/core/api.js` 按 **同源 → jsDelivr（三节点并发竞速）→ raw.githubusercontent**
+取 `index.json` 与 `.book`，任一成功即返回，每层都有超时保护。
 
 所以站点可以部署在 Netlify，书籍单独放 `BookBlackNet` 仓库，只靠 CDN 读。
 详见仓库根的 **[CDN.md](../CDN.md)**：缓存与 `?v=` 版本戳、jsDelivr 限制、验收命令
 （`node scripts/cdn-urls.mjs --check`）。
+
+本地改完要同步到书籍仓库：`bash scripts/sync-book-repo.sh`（SSH，不弹凭据）。
 
 排查用：`<html data-book-source="site|cdn|raw|none">`。
 
