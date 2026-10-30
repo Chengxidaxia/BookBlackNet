@@ -168,6 +168,7 @@ Netlify 新建站点时 **Base directory 填 `book`**（Netlify 只读 base 目�
 | `SITE_KEY` | 公开书的主密钥，**换成你自己的随机串** |
 | `PUBLISH_MODE` | `github` 或 `worker` |
 | `API_BASE` | 用 worker 通道时填 Worker 地址 |
+| `PROXY` | 同源反代：`mode` = `auto`/`always`/`off`，`hosts` 是允许代理的域名（默认 `api.github.com`、`raw.githubusercontent.com`）。注意 `CDN.hosts` 里的 jsDelivr 不在其中 —— CDN 自己就通 CORS |
 | `CATEGORIES` | 分类列表 |
 | `READER` | 阅读器默认排版 |
 

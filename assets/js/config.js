@@ -48,6 +48,25 @@ window.BOOK = {
   API_BASE:   '',        // 例：https://book.blacknet.cc.cd
   OAUTH_BASE: '',        // 例：https://oauth.blacknet.cc.cd（可选，用于显示登录态）
 
+  /* ---- 同源反代（前端使用，后端零改动）----
+     浏览器直连 api.github.com / raw.githubusercontent.com 在部分网络下不可达，
+     或站点自身没有可用出口时，可改走站点同源路径，由 netlify.toml 转发：
+         https://api.github.com/repos/...  →  /proxy/api.github.com/repos/...
+     同源请求浏览器不做 CORS 校验、不发预检，GitHub 侧也不需要任何配置。
+
+     mode : 'auto'   先试反代，站点没配就自动改直连（默认）
+            'always' 只走反代（便于排查）
+            'off'    完全直连
+     hosts: 允许走反代的地址。只列只读/令牌接口，不要加需要 Cookie 的域。 */
+  PROXY: {
+    mode: 'auto',
+    base: '/proxy',
+    hosts: [
+      'api.github.com',               // 书目索引、书籍读写、令牌校验
+      'raw.githubusercontent.com'     // 读取兜底（同源与 CDN 都失败时）
+    ]
+  },
+
   /* ---- 站点主密钥 ----
      用于「公开书」的自动解密：读者无需输入口令。
      注意：静态站的主密钥必然随前端下发，它防的是

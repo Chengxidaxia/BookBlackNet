@@ -16,6 +16,13 @@ window.BKN = window.BKN || {};
   const TOKEN_KEY = 'bbn.pat';
   const MODE_KEY = 'bbn.publishMode';
 
+  /* 跨域请求统一走网络层：站点配了同源反代就走反代，没有就直连。
+     只作用于 CFG.PROXY.hosts 白名单内的地址；同源与 jsDelivr 保持直连。
+     net.js 没加载时退回原生 fetch，功能不受影响。 */
+  const net = (window.BNNET && window.BNNET.create)
+    ? window.BNNET.create(CFG.PROXY)
+    : { fetch: fetch, state: { mode: 'off' }, canProxy: () => false };
+
   /* ---------------- 基础 ---------------- */
   const enc = new TextEncoder();
 
@@ -79,7 +86,7 @@ window.BKN = window.BKN || {};
     const ac = hasAC ? new AbortController() : null;
     const timer = ac ? setTimeout(() => ac.abort(), ms) : null;
     try {
-      const res = await fetch(url, {
+      const res = await net.fetch(url, {
         cache: 'no-store',
         credentials: 'omit',
         signal: ac ? ac.signal : undefined
@@ -209,7 +216,7 @@ window.BKN = window.BKN || {};
         'X-GitHub-Api-Version': '2022-11-28'
       }
     }, opt || {});
-    const res = await fetch(repoPath(path), o);
+    const res = await net.fetch(repoPath(path), o);
     if (res.status === 401) throw new Error('令牌无效或已过期（401）');
     if (res.status === 403) throw new Error('权限不足或被限流（403），请确认令牌含 repo / contents:write 权限');
     if (res.status === 404) throw new Error('仓库或路径不存在（404）：' + CFG.REPO_OWNER + '/' + CFG.REPO_NAME);
@@ -250,7 +257,7 @@ window.BKN = window.BKN || {};
   async function checkToken() {
     const token = auth.get();
     if (!token) throw new Error('尚未填写令牌');
-    const res = await fetch('https://api.github.com/user', {
+    const res = await net.fetch('https://api.github.com/user', {
       headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json' }
     });
     if (!res.ok) throw new Error('令牌校验失败（' + res.status + '）');
@@ -352,5 +359,5 @@ window.BKN = window.BKN || {};
 
   B.api = { loadIndex, fetchBook, bookPath, bookUrl, publish, unpublish,
             checkToken, auth, utf8ToB64, b64ToUtf8, ghGet, ghPut,
-            cdnBases, stamp, bustCdn, verOf };
+            cdnBases, stamp, bustCdn, verOf, net };
 })(window.BKN);

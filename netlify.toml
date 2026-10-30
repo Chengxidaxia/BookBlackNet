@@ -23,6 +23,23 @@
 # ------------------------------------------------------------
 # 重定向
 # ------------------------------------------------------------
+
+# 同源反代（前端使用，GitHub 侧零配置）
+# 浏览器直连 api.github.com / raw 不通时，前端把请求改写成 /proxy/<host>/<path>，
+# 由这里转发。同源请求不做 CORS 校验、不发预检。
+# 对应配置：assets/js/config.js → PROXY（auto 模式下没配这条会自动改直连）。
+[[redirects]]
+  from = "/proxy/api.github.com/*"
+  to = "https://api.github.com/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/proxy/raw.githubusercontent.com/*"
+  to = "https://raw.githubusercontent.com/:splat"
+  status = 200
+  force = true
+
 [[redirects]]
   from = "/read"
   to = "/read.html"
