@@ -65,6 +65,10 @@ window.BOOK = {
   PROXY: {
     mode: 'auto',
     base: '/proxy',
+    // 正式域直连：后端 CORS 白名单已含 book.blacknet.cc.cd（需部署
+    // backend/ 的 oauth / upload worker 后生效），Cookie 同域自动携带，
+    // 且用户浏览器 IP 不会被 CF 质询（Netlify 数据中心 IP 会被质询）。
+    skipOn: ['book.blacknet.cc.cd'],
     hosts: [
       'api.github.com',               // 书目索引、书籍读写、令牌校验
       'raw.githubusercontent.com',    // 读取兜底（同源与 CDN 都失败时）
