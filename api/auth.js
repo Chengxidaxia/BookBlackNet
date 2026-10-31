@@ -7,9 +7,10 @@ import { toWebRequest, sendResponse } from './_lib.mjs';
 import { handleAuth } from '../lib/auth-core.mjs';
 
 // 与 auth-core 的 get/set/delete 接口对齐的 Redis 适配器
+// 兼容两套变量名：Upstash 直建为 UPSTASH_REDIS_REST_*，Vercel Marketplace 集成为 KV_REST_API_*
 function makeStore(env) {
-  const base = env.UPSTASH_REDIS_REST_URL;
-  const token = env.UPSTASH_REDIS_REST_TOKEN;
+  const base = env.UPSTASH_REDIS_REST_URL || env.KV_REST_API_URL || env.KV_URL;
+  const token = env.UPSTASH_REDIS_REST_TOKEN || env.KV_REST_API_TOKEN || env.KV_REST_API_READ_ONLY_TOKEN;
   if (!base || !token) return null;
   const cmd = async (...args) => {
     const r = await fetch(base + '/' + args.map(a => encodeURIComponent(a)).join('/'), {
