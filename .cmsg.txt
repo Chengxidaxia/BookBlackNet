@@ -1,0 +1,1 @@
+chore: remove Netlify leftovers (package.json/netlify) - Vercel serves repo root as pure static
