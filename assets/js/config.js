@@ -7,6 +7,7 @@ window.BOOK = {
   SITE_NAME: 'BookBlackNet',
   SITE_TITLE: '群书阁',
   SITE_DESC: '长篇小说的写作与阅读空间：书架、连载、私密书稿。',
+  SITE_URL:  'https://book.blacknet.cc.cd',   // 正式域名（生成分享链接用）
   HOME: 'index.html',
 
   /* ---- 书籍仓库（.book 文件所在仓库） ---- */
@@ -30,8 +31,10 @@ window.BOOK = {
       'fastly.jsdelivr.net',
       'gcore.jsdelivr.net'
     ],
-    // 自定义基地址（自建反代 / Netlify 子域等）。填了就只用它，忽略 hosts。
-    // 例：'https://book.blacknet.cc.cd'
+    // 自定义镜像基地址。填了就只用它、忽略 hosts。
+    // 一般留空：正式站 book.blacknet.cc.cd 的站点根就带 docs/books，
+    // 「同源」这一层本身就是最快的源，无需额外镜像。
+    // 真要填，应填另一个能提供 /docs/books/ 的域（如自建反代），不要填本站域名。
     base: '',
     timeout: 8000,                      // CDN / raw 单个源超时（毫秒）
     siteTimeout: 5000                   // 同源超时（毫秒），改版后立刻见新

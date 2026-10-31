@@ -1,8 +1,14 @@
 # ============================================================
-# netlify.toml — BookBlackNet（群书阁独立站）
-# 用法：Netlify 新建站点 → Base directory 填 book（若把 book/
-#      的内容直接放到仓库根则填 "/"）→ 读取本文件 → 发布。
-# 无构建步骤：publish = "." 即 Base directory 本身。
+# netlify.toml — BookBlackNet（群书阁）
+# 正式域名：book.blacknet.cc.cd
+#
+# 部署方式（二选一）：
+#   A. Netlify 独立站：新建站点 → 仓库选 GroupBlackNet →
+#      Base directory 填 book → 读取本文件 → publish = "."（无构建）
+#   B. GitHub Pages：仓库 Chengxidaxia/BookBlackNet（根即站点），
+#      Settings → Pages → Custom domain 填 book.blacknet.cc.cd，
+#      根目录 CNAME 由 scripts/sync-book-repo.sh 自动写入。
+#
 # 后端不在此仓库：发布走 GitHub Contents API，或你自己的 CF Worker。
 # ============================================================
 
@@ -40,11 +46,24 @@
   status = 200
   force = true
 
+# publish = "." 意味着站点根就是本目录，构建配置与说明文档会一起被发布出去。
+# 这些不该对外可见，直接 404 掉（不影响任何页面）。
+[[redirects]]
+  from = "/netlify.toml"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/README.md"
+  to = "/404.html"
+  status = 404
+  force = true
+
 [[redirects]]
   from = "/read"
   to = "/read.html"
   status = 200
-
 [[redirects]]
   from = "/write"
   to = "/write.html"

@@ -125,19 +125,33 @@ python -m http.server 8123 --directory book
 
 ## 部署
 
+正式域名：**<https://book.blacknet.cc.cd>**（`assets/js/config.js → SITE_URL`）。
+
 ### Netlify（推荐）
 
 本目录根即站点根，`netlify.toml` 已经写好（无构建，`publish = "."`）。
 Netlify 新建站点时 **Base directory 填 `book`**（Netlify 只读 base 目录下的 toml），
-绑定域名后在 Netlify 里开启 HTTPS。
+然后在 Domain management 里绑 `book.blacknet.cc.cd`，DNS 用 CNAME → `<站点名>.netlify.app`，
+证书签发完成后再开 Force HTTPS。
+
+Netlify 有个好处：`netlify.toml` 里配了 `/proxy/api.github.com/*` 与
+`/proxy/raw.githubusercontent.com/*`，前端在国内直连 GitHub 不通时会自动走这条同源反代。
 
 ### GitHub Pages
 
-仓库 Settings → Pages → 分支 `main`、目录 `/docs`（即把 `book/` 作为仓库根）。或者把整个目录作为仓库根发布。
+独立仓库 `Chengxidaxia/BookBlackNet`（根即站点）→ Settings → Pages →
+Custom domain 填 `book.blacknet.cc.cd`。仓库根需要 `CNAME` 文件
+（内容就一行 `book.blacknet.cc.cd`），`scripts/sync-book-repo.sh` 会自动带上；
+`.nojekyll` 同理，脚本也会补。
+
+Pages 上没有 `/proxy/` 转发，`net.js` 会收到 404 并**自动降级为直连**，功能不受影响，
+只是少了这一层兜底。
 
 ### 放在群档案的子路径下
 
-根项目的 `scripts/netlify-build.sh` 会把 `book/` 一起复制进 `dist/book/`，因此 `https://<主站>/book/` 可直接访问，无需额外配置。
+根项目的 `scripts/netlify-build.sh` 会把 `book/` 一起复制进 `dist/book/`，因此
+`https://grp.blacknet.cc.cd/book/` 仍可访问（保留为备用入口，也可当书籍的同源兜底）。
+页面已带 `canonical` 指向 `book.blacknet.cc.cd`，不会被搜索引擎当成重复内容。
 
 ### 书籍与站点分仓（jsDelivr）
 
@@ -168,6 +182,7 @@ Netlify 新建站点时 **Base directory 填 `book`**（Netlify 只读 base 目�
 | `SITE_KEY` | 公开书的主密钥，**换成你自己的随机串** |
 | `PUBLISH_MODE` | `github` 或 `worker` |
 | `API_BASE` | 用 worker 通道时填 Worker 地址 |
+| `SITE_URL` | 正式域名，用于 canonical 与分享链接。换域时改这一处 |
 | `PROXY` | 同源反代：`mode` = `auto`/`always`/`off`，`hosts` 是允许代理的域名（默认 `api.github.com`、`raw.githubusercontent.com`）。注意 `CDN.hosts` 里的 jsDelivr 不在其中 —— CDN 自己就通 CORS |
 | `CATEGORIES` | 分类列表 |
 | `READER` | 阅读器默认排版 |
