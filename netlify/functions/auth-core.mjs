@@ -132,6 +132,6 @@ export async function handleAuth(request, store) {
 
     return json({ error: 'Not found' }, 404);
   } catch (e) {
-    return json({ error: '服务器错误' }, 500);
+    return json({ error: '服务器错误', detail: String(e && e.message || e) }, 500);
   }
 }
