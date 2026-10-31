@@ -1,0 +1,41 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/api/auth", "destination": "/api/auth" },
+    { "source": "/api/auth/:path*", "destination": "/api/auth" },
+    { "source": "/api/gh", "destination": "/api/gh" },
+    { "source": "/api/gh/:path*", "destination": "/api/gh" },
+    { "source": "/api/imgup", "destination": "/api/imgup" },
+
+    { "source": "/proxy/api.github.com/:path*", "destination": "https://api.github.com/:path*" },
+    { "source": "/proxy/raw.githubusercontent.com/:path*", "destination": "https://raw.githubusercontent.com/:path*" },
+    { "source": "/proxy/oauth.blacknet.cc.cd/:path*", "destination": "https://oauth.blacknet.cc.cd/:path*" },
+    { "source": "/proxy/upload.blacknet.cc.cd/:path*", "destination": "https://upload.blacknet.cc.cd/:path*" },
+    { "source": "/proxy/img.blacknet.cc.cd/:path*", "destination": "https://img.blacknet.cc.cd/:path*" },
+    { "source": "/proxy/api.blacknet.cc.cd/:path*", "destination": "https://api.blacknet.cc.cd/:path*" },
+
+    { "source": "/netlify.toml", "destination": "/404.html" },
+    { "source": "/README.md", "destination": "/404.html" },
+    { "source": "/vercel.json", "destination": "/404.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+      ]
+    },
+    { "source": "/assets/js/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }] },
+    {
+      "source": "/docs/books/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=60" },
+        { "key": "Content-Type", "value": "application/octet-stream" },
+        { "key": "Content-Disposition", "value": "inline" }
+      ]
+    }
+  ]
+}
