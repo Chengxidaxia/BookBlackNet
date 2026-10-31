@@ -9,7 +9,9 @@ export function toWebRequest(req) {
   }
   const method = req.method || 'GET';
   const hasBody = !/^(GET|HEAD)$/i.test(method);
-  return new Request(url, { method, headers: h, body: hasBody ? req : undefined, duplex: 'hold' });
+  const opts = { method, headers: h, body: hasBody ? req : undefined };
+  if (hasBody) opts.duplex = 'half';               // Vercel 的 undici 只认 half（不认 hold）
+  return new Request(url, opts);
 }
 
 export async function sendResponse(res, r) {
