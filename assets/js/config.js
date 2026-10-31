@@ -51,8 +51,11 @@ window.BOOK = {
   API_BASE:   '',        // 例：https://book.blacknet.cc.cd
   OAUTH_BASE: '',        // 例：https://oauth.blacknet.cc.cd（可选，用于显示登录态）
 
-  /* ---- 邮箱账号服务（本站注册/登录，auth worker + KV） ---- */
-  AUTH_URL: 'https://auth.blacknet.cc.cd',
+  /* ---- 邮箱账号服务（本站注册/登录） ----
+     主路径：Netlify Function 同源 /api/auth（无 CORS 无质询）；
+     兜底：CF auth Worker（auth.blacknet.cc.cd，KV 存储）。 */
+  AUTH_URL: '/api/auth',
+  AUTH_URL_FALLBACK: 'https://auth.blacknet.cc.cd',
 
   /* ---- 同源反代（前端使用，后端零改动）----
      浏览器直连 api.github.com / raw.githubusercontent.com 在部分网络下不可达，

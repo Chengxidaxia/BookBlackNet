@@ -16,7 +16,8 @@
   const ME_URL = 'https://oauth.blacknet.cc.cd/me';
   const LOGOUT_URL = 'https://oauth.blacknet.cc.cd/logout';
   const MAIN_SITE = 'https://grp.blacknet.cc.cd';
-  const AUTH_URL = CFG.AUTH_URL || 'https://auth.blacknet.cc.cd';
+  const AUTH_URL = CFG.AUTH_URL || '/api/auth';
+  const AUTH_URL_FALLBACK = CFG.AUTH_URL_FALLBACK || 'https://auth.blacknet.cc.cd';
   const CACHE_KEY = 'bbn.auth.me.v1';
   const EMAIL_TOKEN_KEY = 'bbn.email.token';
   const EMAIL_USER_KEY = 'bbn.email.user';
@@ -65,11 +66,21 @@
     const headers = { 'Content-Type': 'application/json' };
     const t = emailToken();
     if (t) headers['Authorization'] = 'Bearer ' + t;
-    const r = await netFetch(AUTH_URL + path, {
+    const init = {
       method: body ? 'POST' : 'GET',
       headers: headers,
       body: body ? JSON.stringify(body) : undefined
-    });
+    };
+    // 主路径：同源 Netlify Function；网络失败或 404（GitHub Pages 镜像等无 Functions 环境）时回退 CF Worker
+    let r;
+    try {
+      r = await netFetch(AUTH_URL + path, init);
+    } catch (e) {
+      r = await netFetch(AUTH_URL_FALLBACK + path, init);
+    }
+    if (r.status === 404 && AUTH_URL !== AUTH_URL_FALLBACK) {
+      r = await netFetch(AUTH_URL_FALLBACK + path, init);
+    }
     const data = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(data.error || ('HTTP ' + r.status));
     return data;
