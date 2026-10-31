@@ -40,7 +40,19 @@
   function clearCache() { try { sessionStorage.removeItem(CACHE_KEY); } catch (e) {} }
 
   /* ---------------- 通道 A：群档案 GitHub ---------------- */
+  const GH_LOCAL = '/api/gh';   // 同源 Netlify Function（快、零 CORS）；失败回退 CF oauth 直连
+
   async function ghMe() {
+    // 主路径：同源 Function（服务端读 Cookie github_token 问 GitHub）
+    try {
+      const r = await netFetch(GH_LOCAL + '/me', { credentials: 'include' });
+      if (r.ok) {
+        const u = await r.json();
+        return (u && u.login) ? { provider: 'github', login: u.login, name: u.name || u.login, avatar: u.avatar_url || '' } : null;
+      }
+      if (r.status === 401) return null;
+    } catch (e) { /* 本地无 Function（GitHub Pages 镜像等）→ 回退 */ }
+    // 兜底：直连 oauth Worker（需其 CORS 白名单包含本域）
     const r = await netFetch(ME_URL, { credentials: 'include' });
     if (r.ok) {
       const u = await r.json();
@@ -56,6 +68,7 @@
   }
 
   async function ghLogout() {
+    try { await netFetch(GH_LOCAL + '/logout', { method: 'POST', credentials: 'include' }); } catch (e) {}
     try { await netFetch(LOGOUT_URL, { method: 'POST', credentials: 'include' }); } catch (e) {}
   }
 
