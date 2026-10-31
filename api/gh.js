@@ -1,6 +1,6 @@
 // gh.js — Vercel Function：GitHub 登录态（书阁 /api/gh/me、/api/gh/logout）
 import { toWebRequest, sendResponse } from './_lib.mjs';
-import { handleGh } from '../netlify/functions/gh-core.mjs';
+import { handleGh } from '../lib/gh-core.mjs';
 
 export default async function handler(req, res) {
   try {

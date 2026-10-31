@@ -4,7 +4,7 @@
 //   UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN
 // 键与 Netlify Blobs 版完全一致（user:<email> / sess:<token>），数据可无缝导入。
 import { toWebRequest, sendResponse } from './_lib.mjs';
-import { handleAuth } from '../netlify/functions/auth-core.mjs';
+import { handleAuth } from '../lib/auth-core.mjs';
 
 // 与 auth-core 的 get/set/delete 接口对齐的 Redis 适配器
 function makeStore(env) {
