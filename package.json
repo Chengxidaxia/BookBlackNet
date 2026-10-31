@@ -1,9 +1,0 @@
-{
-  "name": "bookblacknet",
-  "private": true,
-  "description": "群书阁站点（静态 + Netlify Functions）",
-  "type": "module",
-  "dependencies": {
-    "@netlify/blobs": "^11.1.7"
-  }
-}
