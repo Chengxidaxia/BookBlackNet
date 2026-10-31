@@ -28,7 +28,8 @@
   const DEFAULTS = {
     mode: 'auto',     // 'auto' 先试反代再直连 | 'always' 只走反代 | 'off' 全直连
     base: '/proxy',   // 同源反代前缀
-    hosts: null       // 允许代理的 host 列表；null/空 表示「任意跨域地址」
+    hosts: null,      // 允许代理的 host 列表；null/空 表示「任意跨域地址」
+    skipOn: null      // 在这些「本页域名」上直接直连（后端已放行的域，不必代理）
   };
 
   function create(opt) {
@@ -40,6 +41,9 @@
         : 'auto';
     const allow = (Array.isArray(cfg.hosts) && cfg.hosts.length)
       ? cfg.hosts.map(h => String(h).trim().toLowerCase()).filter(Boolean)
+      : null;
+    const skipOn = (Array.isArray(cfg.skipOn) && cfg.skipOn.length)
+      ? cfg.skipOn.map(h => String(h).trim().toLowerCase()).filter(Boolean)
       : null;
 
     const state = {
@@ -70,6 +74,7 @@
       if (!a) return false;
       if (a.protocol !== 'https:' && a.protocol !== 'http:') return false;
       if (a.host.toLowerCase() === here()) return false;          // 本来就同源
+      if (skipOn && skipOn.indexOf(here()) > -1) return false;    // 本页所在域已被后端放行
       if (allow && allow.indexOf(a.host.toLowerCase()) < 0) return false;
       return true;
     }
@@ -151,7 +156,7 @@
     }
 
     return {
-      config: { mode, base, hosts: allow },
+      config: { mode, base, hosts: allow, skipOn },
       state,
       canProxy,
       toProxy,
