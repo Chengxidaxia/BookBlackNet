@@ -68,6 +68,10 @@
   from = "/write"
   to = "/write.html"
   status = 200
+[[redirects]]
+  from = "/editor"
+  to = "/editor.html"
+  status = 200
 
 [[redirects]]
   from = "/*"
