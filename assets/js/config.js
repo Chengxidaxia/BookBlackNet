@@ -60,13 +60,17 @@ window.BOOK = {
      mode : 'auto'   先试反代，站点没配就自动改直连（默认）
             'always' 只走反代（便于排查）
             'off'    完全直连
-     hosts: 允许走反代的地址。只列只读/令牌接口，不要加需要 Cookie 的域。 */
+     hosts: 允许走反代的地址。oauth/upload 依赖登录 Cookie 或令牌，
+     Cookie 的 Domain=.blacknet.cc.cd 在同源代理下也会自动携带。 */
   PROXY: {
     mode: 'auto',
     base: '/proxy',
     hosts: [
       'api.github.com',               // 书目索引、书籍读写、令牌校验
-      'raw.githubusercontent.com'     // 读取兜底（同源与 CDN 都失败时）
+      'raw.githubusercontent.com',    // 读取兜底（同源与 CDN 都失败时）
+      'oauth.blacknet.cc.cd',         // 群档案账号登录态（/me）
+      'upload.blacknet.cc.cd',        // 复用主站图床上传
+      'img.blacknet.cc.cd'            // 图床读取（CDN 缓存在 CF 边缘）
     ]
   },
 

@@ -45,7 +45,7 @@
   opacity: 0; transition: opacity .15s, background .15s, color .15s;
 }
 .desk-card:hover .desk-del { opacity: 1; }
-.desk-del:hover { background: #fbe9e7; color: var(--err); }
+.desk-del:hover { background: var(--accent-soft); color: var(--err); }
 .desk-del svg { width: 14px; height: 14px; }
 
 .desk-card.new {
@@ -107,7 +107,7 @@ body.editing { overflow: hidden; }
 .ed-head {
   display: flex; align-items: center; gap: 10px;
   padding: 10px 18px; border-bottom: 1px solid var(--line);
-  background: rgba(250, 247, 241, .92); flex-shrink: 0;
+  background: var(--nav-bg); flex-shrink: 0;
 }
 .book-title-input {
   font-family: var(--serif); font-size: 17px; font-weight: 600;
@@ -149,7 +149,7 @@ body.editing { overflow: hidden; }
   font-size: 13.5px; color: var(--ink-2); line-height: 1.4;
   transition: background .14s, color .14s;
 }
-.chap-item:hover { background: rgba(255,255,255,.7); }
+.chap-item:hover { background: var(--card); }
 .chap-item.on { background: var(--card); color: var(--ink); box-shadow: var(--sh-1); font-weight: 500; }
 .chap-item .no {
   font-family: var(--mono); font-size: 10.5px; color: var(--ink-4);
@@ -259,11 +259,11 @@ body.focus .ed-foot { background: transparent; border-top-color: transparent; op
   position: fixed; right: 22px; bottom: 20px; z-index: 90;
   display: none; align-items: center; gap: 6px;
   height: 32px; padding: 0 12px; border-radius: 99px;
-  background: rgba(33,31,28,.08); color: var(--ink-2); font-size: 12px;
+  background: var(--paper-3); color: var(--ink-2); font-size: 12px;
   backdrop-filter: blur(6px);
 }
 body.focus .focus-exit { display: inline-flex; }
-.focus-exit:hover { background: rgba(33,31,28,.14); }
+.focus-exit:hover { background: var(--line); }
 
 /* ---------------- Markdown 渲染（预览 / 阅读共用） ---------------- */
 .md-body { font-family: var(--serif); color: var(--ink); }
@@ -344,3 +344,14 @@ body.focus .focus-exit { display: inline-flex; }
   .preview-body { padding: 4px 18px 80px; }
   .desk-grid { grid-template-columns: 1fr; }
 }
+
+/* ---------------- 登录门（editor 未登录遮罩） ---------------- */
+body.gate-locked > :not(.login-gate) { filter: blur(6px); pointer-events: none; user-select: none; }
+.login-gate {
+  position: fixed; inset: 0; z-index: 300;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; text-align: center; padding: 32px;
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  backdrop-filter: blur(2px);
+}
+.login-gate .muted { max-width: 460px; line-height: 1.8; }

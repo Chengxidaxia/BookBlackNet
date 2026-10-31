@@ -42,10 +42,38 @@
            "SimSun", Georgia, serif;
   --mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas, monospace;
 
+  --nav-bg: rgba(250, 247, 241, .88);
   --nav-h: 62px;
   --wrap: 1180px;
   --ease: cubic-bezier(.22, .61, .36, 1);
 }
+
+/* ---------- 界面主题（编辑器 UI；body[data-ui-theme] 控制） ---------- */
+body[data-ui-theme="sepia"] {
+  --paper: #f3e9d2; --paper-2: #ecdcb8; --paper-3: #e2cfa4;
+  --card: #faf3e0;
+  --ink: #3a2f1e; --ink-2: #5f4f33; --ink-3: #93825f; --ink-4: #b7a681;
+  --line: #e0d0a9; --line-2: #cfbb8c;
+  --accent-soft: #f2e4c8;
+  --sh-1: 0 1px 2px rgba(70, 55, 25, .06), 0 2px 8px rgba(70, 55, 25, .05);
+  --sh-2: 0 2px 6px rgba(70, 55, 25, .08), 0 12px 32px rgba(70, 55, 25, .09);
+  --sh-3: 0 18px 48px rgba(70, 55, 25, .18);
+  --nav-bg: rgba(243, 233, 210, .88);
+}
+body[data-ui-theme="night"] {
+  --paper: #1e1c19; --paper-2: #26231f; --paper-3: #2e2a25;
+  --card: #2a2723;
+  --ink: #e8e2d6; --ink-2: #c2bbae; --ink-3: #8f887b; --ink-4: #6a6459;
+  --line: #3a352e; --line-2: #4a443b;
+  --accent: #c96b58; --accent-2: #a85343;
+  --accent-soft: #3a2c28;
+  --sh-1: 0 1px 2px rgba(0, 0, 0, .25), 0 2px 8px rgba(0, 0, 0, .2);
+  --sh-2: 0 2px 6px rgba(0, 0, 0, .3), 0 12px 32px rgba(0, 0, 0, .35);
+  --sh-3: 0 18px 48px rgba(0, 0, 0, .5);
+  --nav-bg: rgba(26, 24, 21, .88);
+}
+body[data-ui-theme="night"] ::selection { background: #4a3a35; color: var(--ink); }
+body[data-ui-theme="sepia"] ::selection { background: #e8d3ab; color: var(--ink); }
 
 /* ---------- reset ---------- */
 *, *::before, *::after { box-sizing: border-box; }
@@ -112,7 +140,7 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 0; }
 .nav {
   position: sticky; top: 0; z-index: 60;
   height: var(--nav-h);
-  background: rgba(250, 247, 241, .88);
+  background: var(--nav-bg);
   backdrop-filter: saturate(180%) blur(14px);
   -webkit-backdrop-filter: saturate(180%) blur(14px);
   border-bottom: 1px solid var(--line);

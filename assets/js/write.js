@@ -14,7 +14,7 @@
 
   const els = {};
   const IDS = ['shelf-view', 'desk-list', 'shelf-q', 'shelf-cats', 'shelf-status', 'shelf-sort',
-    'btn-new', 'btn-import', 'btn-backup', 'btn-settings', 'file-hidden'];
+    'btn-new', 'btn-import', 'btn-backup', 'btn-sync', 'btn-settings', 'file-hidden'];
   IDS.forEach(id => { els[id.replace(/-([a-z])/g, (_, c) => c.toUpperCase())] = document.getElementById(id); });
 
   /* ---------------- 筛选状态（持久化） ---------------- */

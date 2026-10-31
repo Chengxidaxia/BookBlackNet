@@ -46,6 +46,26 @@
   status = 200
   force = true
 
+# 主站后端复用：登录态（Cookie Domain=.blacknet.cc.cd 会随同源请求自动携带）、
+# 图床上传（PAT 或 Cookie 鉴权）、图床读取（CDN 缓存在 CF 边缘）
+[[redirects]]
+  from = "/proxy/oauth.blacknet.cc.cd/*"
+  to = "https://oauth.blacknet.cc.cd/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/proxy/upload.blacknet.cc.cd/*"
+  to = "https://upload.blacknet.cc.cd/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/proxy/img.blacknet.cc.cd/*"
+  to = "https://img.blacknet.cc.cd/:splat"
+  status = 200
+  force = true
+
 # publish = "." 意味着站点根就是本目录，构建配置与说明文档会一起被发布出去。
 # 这些不该对外可见，直接 404 掉（不影响任何页面）。
 [[redirects]]
@@ -93,6 +113,17 @@
   for = "/assets/*"
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
+
+# 静态图片：Netlify CDN + 浏览器各缓存 30 天
+[[headers]]
+  for = "/assets/img/*"
+  [headers.values]
+    Cache-Control = "public, max-age=2592000"
+
+[[headers]]
+  for = "/img/*"
+  [headers.values]
+    Cache-Control = "public, max-age=2592000"
 
 [[headers]]
   for = "/*.html"

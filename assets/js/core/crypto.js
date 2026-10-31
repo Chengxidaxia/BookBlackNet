@@ -239,6 +239,8 @@ window.BKN = window.BKN || {};
       status: src.status === 'done' ? 'done' : 'ongoing',
       visibility: src.visibility === 'private' ? 'private' : 'public',
       cover: src.cover || null,
+      account: (src.account || '').trim().slice(0, 60),                    // 发布者群档案登录名
+      signed: (src.signed || '').trim().slice(0, 120),                     // 署名串 login@时间
       createdAt: src.createdAt || now,
       updatedAt: src.updatedAt || now
     };

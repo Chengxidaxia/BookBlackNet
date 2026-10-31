@@ -17,7 +17,7 @@
   const IDS = ['editor-view', 'btn-back', 'book-title', 'pub-badge', 'ed-stats', 'btn-meta',
     'btn-preview', 'btn-publish', 'ed-chapters', 'chap-mask', 'btn-toc-ch', 'chap-list', 'chap-count',
     'btn-add-chap', 'btn-import-md', 'ed-tools', 'ch-title', 'ed-text', 'ed-preview', 'preview-body',
-    'preview-count', 'foot-state', 'foot-count', 'btn-focus', 'btn-del-chap',
+    'preview-count', 'foot-state', 'foot-count', 'gist-state', 'btn-focus', 'btn-del-chap',
     'btn-settings', 'save-hint', 'file-md-hidden'];
   IDS.forEach(id => { els[id.replace(/-([a-z])/g, (_, c) => c.toUpperCase())] = document.getElementById(id); });
 
@@ -28,7 +28,8 @@
     preview: false,
     focus: false,
     saving: false,
-    lastSaved: null
+    lastSaved: null,
+    user: null                 // 群档案账号（boot 时登录检测填充）
   };
 
   let undo = null; // core/undo.js
@@ -160,7 +161,7 @@
   function removeChapter() {
     if (S.book.chapters.length <= 1) { toast('至少保留一章', 'err'); return; }
     const cur = currentChapter();
-    confirmBox('删除「' + (cur.title || '未命名') + '」？', '这一章的内容会被删除，无法撤销。', '删除', () => {
+    const doRemove = () => {
       const i = S.book.chapters.findIndex(c => c.id === S.chId);
       S.book.chapters.splice(i, 1);
       const next = S.book.chapters[Math.max(0, i - 1)];
@@ -172,7 +173,9 @@
       refreshStats();
       scheduleSave();
       toast('已删除章节', 'ok');
-    });
+    };
+    if (!B.prefs.get('editor.confirmDelete', true)) return doRemove();
+    confirmBox('删除「' + (cur.title || '未命名') + '」？', '这一章的内容会被删除，无法撤销。', '删除', doRemove);
   }
 
   /* ---------------- 移动端章节抽屉 ---------------- */
@@ -213,7 +216,7 @@
   function scheduleSave() {
     setFoot('未保存…');
     if (savingTimer) clearTimeout(savingTimer);
-    savingTimer = setTimeout(() => flushSave(), 700);
+    savingTimer = setTimeout(() => flushSave(), B.prefs ? B.prefs.get('editor.autosaveMs', 700) : 700);
   }
 
   async function flushSave() {
@@ -261,9 +264,16 @@
     const total = arr.reduce((n, c) => n + words(c.content), 0);
     const cur = words(currentChapter() ? currentChapter().content : els.edText.value);
     els.edStats.textContent = '本章 ' + num(cur) + ' · 全书 ' + num(total);
-    els.footCount.textContent = arr.length + ' 章 · ' + num(total) + ' 字';
+    let foot = arr.length + ' 章 · ' + num(total) + ' 字';
+    if (B.stats && B.prefs.get('editor.showStats', true)) {
+      const goal = B.prefs.get('editor.dailyGoal', 1000);
+      const today = B.stats.today();
+      const pct = goal ? Math.min(100, Math.round(today / goal * 100)) : 0;
+      foot = '今日 ' + num(today) + ' 字（' + pct + '%） · 连续 ' + B.stats.streak() + ' 天 · ' + foot;
+      if (B.stats.tick) B.stats.tick(S.book.id, total);
+    }
+    els.footCount.textContent = foot;
     if (S.preview) els.previewCount.textContent = num(cur) + ' 字';
-    if (B.stats) B.stats.tick(S.book, cur);     // 写作统计（阶段 3 接入）
   }
 
   const renderPreview = debounce(function () {
@@ -366,10 +376,31 @@
 
   function promptUrl() {
     const input = el('input.input', { placeholder: 'https://… 图片地址', type: 'url' });
+    const upFile = el('input', { type: 'file', accept: 'image/jpeg,image/png,image/webp,image/gif' });
+    upFile.classList.add('hidden');
+    const upBtn = el('button.btn.btn-sm', { text: '或从本地上传（存到主站图床）', on: { click: () => upFile.click() } });
+    upFile.addEventListener('change', async () => {
+      const file = upFile.files && upFile.files[0];
+      if (!file) return;
+      upBtn.disabled = true;
+      upBtn.textContent = '上传中…';
+      try {
+        const u = await B.upload.uploadImage(file);
+        input.value = u;
+        toast('已上传到图床', 'ok');
+      } catch (e) {
+        toast(e.message, 'err');
+      } finally {
+        upBtn.disabled = false;
+        upBtn.textContent = '或从本地上传（存到主站图床）';
+        upFile.value = '';
+      }
+    });
     dialog({
       title: '插入图片',
       body: el('div.stack.gap-10',
         el('div.field', el('label.label', { text: '图片地址' }), input),
+        el('div.row.gap-8.align-center', upBtn, upFile),
         el('div.hint', { text: '支持外链图片；图片不会存进 .book 文件，请确保链接长期可访问。' })
       ),
       actions: [
@@ -390,6 +421,15 @@
     });
   }
 
+  /* 估算光标纵向位置（textarea 无 caret API，按行号近似） */
+  function getCaretY(ta) {
+    const upTo = ta.value.slice(0, ta.selectionStart);
+    const lines = upTo.split('\n').length - 1;
+    const lineH = parseFloat(getComputedStyle(ta).lineHeight) || 32;
+    const pt = parseFloat(getComputedStyle(ta).paddingTop) || 0;
+    return pt + lines * lineH;
+  }
+
   /* ============================================================
      5. 输入事件
      ============================================================ */
@@ -407,7 +447,7 @@
     const m = S.book.meta;
     const f = {
       title: el('input.input', { value: m.title || '', maxlength: '60' }),
-      author: el('input.input', { value: m.author || '', maxlength: '30', placeholder: '笔名' }),
+      author: el('input.input', { value: m.author || (S.user ? S.user.name : ''), maxlength: '30', placeholder: S.user ? ('留空则署名「' + S.user.name + '」') : '笔名' }),
       category: el('select.select', CFG.CATEGORIES.map(c => el('option', { value: c, text: c })).concat(
         CFG.CATEGORIES.indexOf(m.category) < 0 && m.category ? [el('option', { value: m.category, text: m.category, selected: true })] : []
       )),
@@ -427,6 +467,43 @@
       text: B.crypto.firstChar(m.title || '书'),
       style: (() => { const c = B.crypto.coverOf(m); return { background: 'linear-gradient(155deg,' + c.from + ',' + c.to + ')' }; })()
     });
+    function paintCover() {
+      if (m.cover && m.cover.url) {
+        coverPrev.textContent = '';
+        coverPrev.style.background = 'url("' + m.cover.url + '") center / cover no-repeat';
+      }
+    }
+    paintCover();
+    const coverFile = el('input', { type: 'file', accept: 'image/jpeg,image/png,image/webp,image/gif' });
+    coverFile.classList.add('hidden');
+    const coverHint = el('div.small.muted', { text: '未上传封面时，按书名自动生成书法色卡封面（不占体积）。' });
+    const coverBtn = el('button.btn.btn-sm', { text: '上传封面图', on: { click: () => coverFile.click() } });
+    const coverDel = el('button.btn.btn-sm', { text: '恢复自动封面', on: { click: () => {
+      m.cover = null;
+      const c = B.crypto.coverOf({ title: m.title });
+      coverPrev.textContent = B.crypto.firstChar(m.title || '书');
+      coverPrev.style.background = 'linear-gradient(155deg,' + c.from + ',' + c.to + ')';
+      toast('已恢复自动封面', 'ok');
+    } } });
+    coverFile.addEventListener('change', async () => {
+      const file = coverFile.files && coverFile.files[0];
+      if (!file) return;
+      coverBtn.disabled = true;
+      coverHint.textContent = '上传中…';
+      try {
+        const url = await B.upload.uploadImage(file);
+        m.cover = { type: 'image', url: url };
+        paintCover();
+        coverHint.textContent = '封面已上传，保存后生效。';
+        toast('封面图已上传', 'ok');
+      } catch (e) {
+        coverHint.textContent = e.message;
+        toast(e.message, 'err');
+      } finally {
+        coverBtn.disabled = false;
+        coverFile.value = '';
+      }
+    });
 
     const body = el('div.stack.gap-14',
       el('div.form-grid',
@@ -440,8 +517,9 @@
       el('div.field',
         el('label.label', { text: '封面' }),
         el('div.cover-row', coverPrev,
-          el('div.small.muted', { text: '未上传封面时，按书名自动生成书法色卡封面（不占体积）。' })
-        )
+          el('div.stack.gap-8', coverBtn, coverDel, coverHint)
+        ),
+        coverFile
       ),
       el('label.switch',
         f.private,
@@ -575,11 +653,17 @@
             status.className = 'pub-status';
             status.lastChild.textContent = '正在加密并上传…';
             try {
+              // 账号署名：默认笔名 = 昵称；account/signed 由登录态生成
+              if (S.user) {
+                if (!m.author) m.author = S.user.name;
+                m.account = S.user.login;
+                m.signed = S.user.login + '@' + new Date().toISOString();
+              }
               const packed = await buildPacked();
               const entry = {
                 id: S.book.id, title: m.title, author: m.author || '佚名', intro: m.intro,
                 category: m.category, tags: m.tags, status: m.status, visibility: m.visibility,
-                cover: S.book.meta.cover, chapters: chapCount, words: total
+                account: m.account || '', cover: S.book.meta.cover, chapters: chapCount, words: total
               };
               const res = await api.publish(packed, entry);
 
@@ -678,6 +762,16 @@
     els.btnTocCh.addEventListener('click', () => toggleToc());
     els.chapMask.addEventListener('click', () => toggleToc(false));
 
+    // 云同步状态条（Gist）
+    if (B.gist) {
+      const label = s => '云：' + (B.gist.STATUS_LABEL[s] || s);
+      B.gist.onStatus(s => { els.gistState.textContent = label(s); els.gistState.style.color = s === 'err' ? 'var(--err)' : s === 'ok' ? 'var(--ok)' : ''; });
+      els.gistState.addEventListener('click', async () => {
+        await flushSave();
+        B.gist.syncNow(S.book, B.gist.askConflict);
+      });
+    }
+
     els.btnImportMd.addEventListener('click', () => {
       els.fileMdHidden.value = '';
       els.fileMdHidden.click();
@@ -708,7 +802,22 @@
     });
 
     // 撤销栈（Bug D）
-    undo = B.undo.attach(els.edText, { limit: util.store.get('bbn.prefs.undoLimit', 200) || 200 });
+    undo = B.undo.attach(els.edText, { limit: B.prefs.get('editor.undoLimit', 200) });
+
+    // 偏好应用 + 变更即时生效
+    B.prefs.applyEditor();
+    B.prefs.onChange(p => { if (String(p).indexOf('editor.') === 0) B.prefs.applyEditor(); });
+
+    // 打字机滚动
+    els.edText.addEventListener('input', () => {
+      if (!B.prefs.get('editor.typewriter')) return;
+      const ta = els.edText;
+      const caretY = getCaretY(ta);
+      const r = ta.getBoundingClientRect();
+      if (caretY != null) {
+        ta.scrollTop = Math.max(0, caretY - r.height / 2);
+      }
+    });
 
     els.edText.addEventListener('input', onInput);
     els.edText.addEventListener('keydown', e => {
@@ -766,7 +875,28 @@
     bind();
     const id = util.qs('id') || util.qs('d');   // Bug B：兼容 ?d= 入口
     if (!id) { location.replace('write.html'); return; }
+    // 写作需登录群档案账号（Cookie Domain=.blacknet.cc.cd 自动携带）
+    const user = await B.auth.me();
+    if (!user) { showLoginGate(id, user === null ? 'notlogin' : 'unknown'); return; }
+    S.user = user;
     await openEditor(id);
+  }
+
+  /* 登录门：未登录不给进编辑器 */
+  function showLoginGate(id, why) {
+    const msg = el('div.stack.gap-12.login-gate',
+      el('h2', { text: '写作前请先登录' }),
+      el('div.muted', { text: why === 'notlogin'
+        ? '群书阁写作功能需要群档案账号（与主站共用登录）。登录后你的作品会以账号署名发布。'
+        : '登录状态检查失败（网络原因）。可以重试，或先完成主站登录。' }),
+      el('div.row.gap-8',
+        el('button.btn.primary', { text: '使用群档案账号登录', on: { click: () => B.auth.login(location.href) } }),
+        el('button.btn', { text: '重试', on: { click: () => location.reload() } }),
+        el('a.btn', { href: 'write.html', text: '返回书架' })
+      )
+    );
+    document.body.appendChild(msg);
+    document.body.classList.add('gate-locked');
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
