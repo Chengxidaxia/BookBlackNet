@@ -113,10 +113,18 @@ DEK ──AES-GCM(dataIv)──▶ 密文 ──gunzip?──▶ {"meta":{...},"
 
 ## 本地开发
 
-WebCrypto 只在安全上下文可用，**必须用 localhost 打开**（`file://` 不行）：
+WebCrypto 只在安全上下文可用，**必须用 localhost 打开**（`file://` 不行）。
+
+在仓库根执行（`--directory` 指向本目录）：
 
 ```bash
 python -m http.server 8123 --directory book
+```
+
+如果当前就在本目录里，用：
+
+```bash
+python -m http.server 8123
 ```
 
 然后访问 `http://localhost:8123/`。
