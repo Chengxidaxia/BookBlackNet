@@ -355,3 +355,5 @@ body.gate-locked > :not(.login-gate) { filter: blur(6px); pointer-events: none; 
   backdrop-filter: blur(2px);
 }
 .login-gate .muted { max-width: 460px; line-height: 1.8; }
+.login-gate .gate-form { width: min(360px, 88vw); text-align: left; }
+.login-gate .gate-form .row { flex-wrap: wrap; }

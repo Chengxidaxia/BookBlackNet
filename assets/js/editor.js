@@ -882,17 +882,60 @@
     await openEditor(id);
   }
 
-  /* 登录门：未登录不给进编辑器 */
+  /* 登录门：未登录不给进编辑器（GitHub 会话 或 邮箱账号） */
   function showLoginGate(id, why) {
+    let regMode = false;
+    const fEmail = el('input.input', { type: 'email', placeholder: '邮箱', autocomplete: 'email' });
+    const fName = el('input.input', { placeholder: '昵称（注册用，留空取邮箱名）', maxlength: '30' });
+    const fPass = el('input.input', { type: 'password', placeholder: '口令（至少 8 位）', autocomplete: 'current-password' });
+    const nameField = el('div.field.hidden', el('label.label', { text: '昵称' }), fName);
+    const err = el('div.small', { style: { color: 'var(--err)', minHeight: '18px' } });
+    const goBtn = el('button.btn.primary', { text: '登录', style: { minWidth: '96px' } });
+    const switchBtn = el('button.btn', { text: '没有账号？去注册' });
+
+    function setMode(reg) {
+      regMode = reg;
+      nameField.classList.toggle('hidden', !reg);
+      goBtn.textContent = reg ? '注册并登录' : '登录';
+      switchBtn.textContent = reg ? '已有账号？去登录' : '没有账号？去注册';
+      err.textContent = '';
+    }
+    switchBtn.addEventListener('click', () => setMode(!regMode));
+
+    async function submit() {
+      const email = fEmail.value.trim();
+      const pass = fPass.value;
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { err.textContent = '邮箱格式不正确'; return; }
+      if (pass.length < 8) { err.textContent = '口令至少 8 位'; return; }
+      goBtn.disabled = true;
+      err.textContent = '…';
+      try {
+        await (regMode ? B.auth.emailRegister(email, pass, fName.value.trim()) : B.auth.emailLogin(email, pass));
+        location.reload();
+      } catch (e) {
+        err.textContent = e.message;
+        goBtn.disabled = false;
+      }
+    }
+    goBtn.addEventListener('click', submit);
+    fPass.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
+
     const msg = el('div.stack.gap-12.login-gate',
       el('h2', { text: '写作前请先登录' }),
       el('div.muted', { text: why === 'notlogin'
-        ? '群书阁写作功能需要群档案账号（与主站共用登录）。登录后你的作品会以账号署名发布。'
-        : '登录状态检查失败（网络原因）。可以重试，或先完成主站登录。' }),
-      el('div.row.gap-8',
-        el('button.btn.primary', { text: '使用群档案账号登录', on: { click: () => B.auth.login(location.href) } }),
-        el('button.btn', { text: '重试', on: { click: () => location.reload() } }),
-        el('a.btn', { href: 'write.html', text: '返回书架' })
+        ? '支持两种方式：群档案账号（与主站共用 GitHub 登录），或本站邮箱账号。作品发布时以账号署名。'
+        : '登录状态检查失败（网络原因）。可改用邮箱账号登录，或稍后重试。' }),
+      el('div.stack.gap-8.gate-form',
+        el('div.field', el('label.label', { text: '邮箱' }), fEmail),
+        nameField,
+        el('div.field', el('label.label', { text: '口令' }), fPass),
+        err,
+        el('div.row.gap-8',
+          goBtn, switchBtn,
+          el('button.btn', { text: '群档案账号登录', on: { click: () => B.auth.login(location.href) } }),
+          el('button.btn', { text: '重试', on: { click: () => location.reload() } }),
+          el('a.btn', { href: 'write.html', text: '返回书架' })
+        )
       )
     );
     document.body.appendChild(msg);

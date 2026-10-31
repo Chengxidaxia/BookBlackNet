@@ -51,6 +51,9 @@ window.BOOK = {
   API_BASE:   '',        // 例：https://book.blacknet.cc.cd
   OAUTH_BASE: '',        // 例：https://oauth.blacknet.cc.cd（可选，用于显示登录态）
 
+  /* ---- 邮箱账号服务（本站注册/登录，auth worker + KV） ---- */
+  AUTH_URL: 'https://auth.blacknet.cc.cd',
+
   /* ---- 同源反代（前端使用，后端零改动）----
      浏览器直连 api.github.com / raw.githubusercontent.com 在部分网络下不可达，
      或站点自身没有可用出口时，可改走站点同源路径，由 netlify.toml 转发：
