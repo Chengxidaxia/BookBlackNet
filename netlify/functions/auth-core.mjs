@@ -2,7 +2,7 @@
 // auth-core.mjs — 邮箱注册/登录核心逻辑（与存储解耦，便于单测）
 // 存储（store）约定三个方法：
 //   get(key)  → 字符串或 null
-//   put(key, value)
+//   set(key, value)
 //   delete(key)
 // ============================================================
 
@@ -92,10 +92,10 @@ export async function handleAuth(request, store) {
         hash: await hashPassword(password, salt.buffer),
         createdAt: new Date().toISOString(),
       };
-      await store.put(userKey(email), JSON.stringify(user));
+      await store.set(userKey(email), JSON.stringify(user));
 
       const token = randToken();
-      await store.put(sessKey(token), JSON.stringify({ email, name, exp: Date.now() + SESSION_TTL }));
+      await store.set(sessKey(token), JSON.stringify({ email, name, exp: Date.now() + SESSION_TTL }));
       return json({ token, user: publicUser(user) });
     }
 
@@ -110,7 +110,7 @@ export async function handleAuth(request, store) {
         return json({ error: '邮箱或口令不正确' }, 401);
       }
       const token = randToken();
-      await store.put(sessKey(token), JSON.stringify({ email, name: user.name, exp: Date.now() + SESSION_TTL }));
+      await store.set(sessKey(token), JSON.stringify({ email, name: user.name, exp: Date.now() + SESSION_TTL }));
       return json({ token, user: publicUser(user) });
     }
 
