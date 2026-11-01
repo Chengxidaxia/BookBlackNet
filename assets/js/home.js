@@ -15,13 +15,17 @@
     'empty-desc', 'continue-sec', 'continue-row', 'shelf-desc'
   ].forEach(id => { els[id.replace(/-([a-z])/g, (_, c) => c.toUpperCase())] = document.getElementById(id); });
 
-  const S = {
+  const S = Object.assign({
     all: [],
     cat: '全部',
     sort: 'updated',
     q: '',
     source: 'site'
-  };
+  }, util.store.get('bbn.library.view', {}) || {});   // 上次的分类 / 排序 / 搜索词
+
+  function saveView() {
+    util.store.set('bbn.library.view', { cat: S.cat, sort: S.sort, q: S.q });
+  }
 
   /* ---------------- 渲染工具 ---------------- */
   function coverStyle(cov) {
@@ -76,7 +80,7 @@
     els.catChips.innerHTML = '';
     cats.forEach(c => {
       const chip = el('button.chip' + (c === S.cat ? '.on' : ''), { text: c });
-      chip.addEventListener('click', () => { S.cat = c; renderChips(); renderShelf(); });
+      chip.addEventListener('click', () => { S.cat = c; saveView(); renderChips(); renderShelf(); });
       els.catChips.appendChild(chip);
     });
   }
@@ -143,7 +147,7 @@
           )
         )
       );
-      card.addEventListener('click', () => { location.href = 'read.html?id=' + encodeURIComponent(b.id); });
+      card.addEventListener('click', () => { location.href = 'book.html?id=' + encodeURIComponent(b.id); });
       els.bookGrid.appendChild(card);
     });
   }
@@ -182,16 +186,18 @@
   /* ---------------- 启动 ---------------- */
   async function boot() {
     els.sortSel.value = S.sort;
-    els.sortSel.addEventListener('change', () => { S.sort = els.sortSel.value; renderShelf(); });
+    els.sortSel.addEventListener('change', () => { S.sort = els.sortSel.value; saveView(); renderShelf(); });
 
     els.searchForm.addEventListener('submit', e => {
       e.preventDefault();
       S.q = els.searchInput.value;
+      saveView();
       renderShelf();
       document.getElementById('shelf').scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
     els.searchInput.addEventListener('input', util.debounce(() => {
       S.q = els.searchInput.value;
+      saveView();
       renderShelf();
     }, 260));
 
@@ -207,10 +213,12 @@
     renderShelf();
     renderContinue();
 
-    // 深链：?q= 或 ?cat=
+    // 深链：?q= 或 ?cat=（优先于记住的视图，并覆盖保存）
     const q = util.qs('q'), cat = util.qs('cat');
-    if (q) { S.q = q; els.searchInput.value = q; renderShelf(); }
-    if (cat) { S.cat = cat; renderChips(); renderShelf(); }
+    if (q) { S.q = q; els.searchInput.value = q; saveView(); renderShelf(); }
+    if (cat) { S.cat = cat; saveView(); renderChips(); renderShelf(); }
+    // 恢复上次视图：搜索词回填输入框
+    if (!q && S.q) els.searchInput.value = S.q;
 
     if (S.source === 'none') {
       console.warn('书目索引未读到：' + CFG.INDEX_FILE);

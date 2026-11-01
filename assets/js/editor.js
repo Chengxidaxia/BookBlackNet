@@ -579,7 +579,7 @@
       openMetaDialog();
       return;
     }
-    if (total < 10) { toast('正文还太短，先写点内容', 'err'); return; }
+
 
     const hasToken = !!api.auth.get();
     const modeSel = el('select.select',
@@ -612,7 +612,7 @@
         el('div.field.full', tokenWrap),
         passWrap
       ),
-      el('div.hint', { text: '令牌需要仓库 ' + CFG.REPO_OWNER + '/' + CFG.REPO_NAME + ' 的 contents 写入权限；只保存在本机浏览器，不会上传。' }),
+      el('div.hint', { text: '令牌需要仓库 ' + CFG.REPO_OWNER + '/' + CFG.REPO_NAME + ' 的 contents 写入权限；只保存在本机浏览器，不会上传。不填也行——只要你在群档案登录过 GitHub 账号，会自动借用该登录态发布。' }),
       status,
       linkBox
     );
@@ -642,7 +642,11 @@
             if (modeSel.value === 'github') {
               const t = tokenInput.value.trim();
               if (t && t.indexOf('•') < 0) api.auth.set(t);
-              if (!api.auth.get()) { toast('请填写 GitHub 访问令牌', 'err'); tokenInput.focus(); return; }
+              if (!api.auth.get()) {
+                // 未填令牌：尝试用群档案登录态（Cookie → /api/token）
+                const got = await api.resolveToken(true);
+                if (!got) { toast('请填写 GitHub 访问令牌，或在群档案登录 GitHub 账号', 'err'); tokenInput.focus(); return; }
+              }
             }
             if (m.visibility === 'private' && !passInput.value.trim()) {
               toast('私密作品需要设置阅读口令', 'err'); passInput.focus(); return;
@@ -676,8 +680,8 @@
               refreshBadge();
 
               const url = CFG.SITE_URL
-                ? CFG.SITE_URL.replace(/\/$/, '') + '/read.html?id=' + encodeURIComponent(S.book.id)
-                : new URL('read.html?id=' + encodeURIComponent(S.book.id), location.href).href;
+                ? CFG.SITE_URL.replace(/\/$/, '') + '/book.html?id=' + encodeURIComponent(S.book.id)
+                : new URL('book.html?id=' + encodeURIComponent(S.book.id), location.href).href;
               status.className = 'pub-status ok';
               status.lastChild.textContent = '发布成功（' + res.mode + '）。页面通常 1 分钟内生效。';
               linkBox.classList.remove('hidden');

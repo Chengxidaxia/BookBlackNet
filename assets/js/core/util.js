@@ -193,4 +193,9 @@ window.BKN = window.BKN || {};
 
   B.util = { $, $$, el, esc, toast, words, num, timeAgo, dateStr,
              debounce, uid, safeJSON, store, copy, download, go, qs, fitText };
+
+  /* LS 兼容别名：home.js / read.js / detail.js 里直接用了 LS.get / LS.set，
+     但此前从未定义过（一走到就 ReferenceError）。这里补上 —— 语义与
+     store 完全一致（JSON 序列化 + try/catch）。 */
+  try { if (typeof window !== 'undefined' && !window.LS) window.LS = store; } catch (e) {}
 })(window.BKN);

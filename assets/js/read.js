@@ -11,9 +11,8 @@
 
   const els = {};
   ['reader-bar', 'rb-title', 'rb-progress', 'btn-toc', 'btn-toc-close', 'btn-font', 'btn-theme',
-    'toc', 'toc-mask', 'toc-list', 'toc-count', 'toc-name', 'toc-author', 'toc-cover',
+    'toc', 'toc-mask', 'toc-list', 'toc-count', 'toc-name', 'toc-author', 'toc-cover', 'toc-link',
     'rd-panel', 'seg-size', 'val-size', 'reader-main', 'reader-state', 'reader-art',
-    'book-head', 'bh-cover', 'bh-title', 'bh-meta', 'bh-intro', 'bh-tags',
     'chap-title', 'chap-body', 'chap-nav', 'btn-prev', 'btn-next', 'btn-toc2'
   ].forEach(id => { els[id.replace(/-([a-z])/g, (_, c) => c.toUpperCase())] = document.getElementById(id); });
 
@@ -22,7 +21,19 @@
     file: null,
     data: null,       // {meta, chapters}
     idx: 0,
-    reader: Object.assign({}, CFG.READER, LS.get('bbn.reader', {}) || {}),
+    // 阅读配置统一走 prefs（bbn.prefs.v1），与写作台「设置」面板同一份；
+    // prefs 不可用时退回旧键 bbn.reader
+    reader: (function () {
+      const p = window.BKN && window.BKN.prefs;
+      if (p) return {
+        fontSize: p.get('reader.fontSize', 19),
+        lineHeight: p.get('reader.lineHeight', 1.95),
+        width: p.get('reader.width', 720),
+        font: p.get('reader.font', 'serif'),
+        theme: p.get('reader.theme', 'paper')
+      };
+      return Object.assign({}, CFG.READER, LS.get('bbn.reader', {}) || {});
+    })(),
     baseTitle: '阅读'
   };
 
@@ -45,7 +56,16 @@
   }
 
   function saveReader() {
-    LS.set('bbn.reader', S.reader);
+    const p = window.BKN && window.BKN.prefs;
+    if (p) {
+      p.set('reader.fontSize', S.reader.fontSize);
+      p.set('reader.lineHeight', S.reader.lineHeight);
+      p.set('reader.width', S.reader.width);
+      p.set('reader.font', S.reader.font);
+      p.set('reader.theme', S.reader.theme);
+    } else {
+      LS.set('bbn.reader', S.reader);   // 降级：prefs 未加载
+    }
     applyReader();
   }
 
@@ -119,45 +139,20 @@
   function renderHead() {
     const m = S.data.meta;
     const cov = B.crypto.coverOf(m);
-    els.bhTitle.textContent = m.title || '未命名作品';
 
+    // 书籍信息头已拆到独立详情页 book.html；这里只维护目录侧栏与标题
     if (cov.type === 'image') {
-      els.bhCover.textContent = '';
-      els.bhCover.style.background = 'none';
-      els.bhCover.style.backgroundImage = 'url("' + cov.url + '")';
-      els.bhCover.style.backgroundSize = 'cover';
-      els.bhCover.style.backgroundPosition = 'center';
       els.tocCover.textContent = '';
       els.tocCover.style.backgroundImage = 'url("' + cov.url + '")';
     } else {
       const bg = 'linear-gradient(155deg,' + cov.from + ',' + cov.to + ')';
-      els.bhCover.textContent = cov.text || '书';
-      els.bhCover.style.backgroundImage = 'none';
-      els.bhCover.style.background = bg;
       els.tocCover.textContent = cov.text || '书';
       els.tocCover.style.background = bg;
     }
 
-    const bits = [
-      m.author ? el('span', { text: m.author }) : null,
-      m.category ? el('span', { text: m.category }) : null,
-      el('span.dotsep', { text: '·' }),
-      el('span', { text: num(S.data.words) + ' 字' }),
-      el('span.dotsep', { text: '·' }),
-      el('span', { text: (m.status === 'done' ? '已完结' : '连载中') }),
-      m.visibility === 'private' ? el('span.badge.badge-priv', { text: '私密' }) : null
-    ].filter(Boolean);
-    els.bhMeta.innerHTML = '';
-    bits.forEach(b => els.bhMeta.appendChild(b));
-
-    els.bhIntro.textContent = m.intro || '';
-    els.bhIntro.style.display = m.intro ? '' : 'none';
-
-    els.bhTags.innerHTML = '';
-    (m.tags || []).forEach(t => els.bhTags.appendChild(el('span.tag', { text: t })));
-
     els.tocName.textContent = m.title || '未命名作品';
     els.tocAuthor.textContent = (m.author || '佚名') + ' · ' + num(S.data.words) + ' 字';
+    if (els.tocLink && S.bookId) els.tocLink.href = 'book.html?id=' + encodeURIComponent(S.bookId);
     document.title = (m.title || '阅读') + ' · BookBlackNet';
     S.baseTitle = m.title || '阅读';
     els.rbTitle.textContent = m.title || '阅读';
@@ -176,10 +171,6 @@
     els.chapTitle.textContent = c.title || ('第 ' + (S.idx + 1) + ' 章');
     els.chapBody.innerHTML = md.render(c.content) ||
       '<p class="muted" style="text-indent:0">（本章暂时没有内容）</p>';
-
-    // 首章且无进度才展示书籍信息头
-    const showHead = S.idx === 0 && !(restoreRatio > 0.02);
-    els.bookHead.style.display = showHead ? '' : 'none';
 
     els.btnPrev.disabled = S.idx <= 0;
     els.btnNext.disabled = S.idx >= list.length - 1;
