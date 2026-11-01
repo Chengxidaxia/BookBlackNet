@@ -140,7 +140,7 @@
 
     const bits = [
       m.author ? el('span', { text: m.author }) : null,
-      el('span', { text: m.category || '其他' }),
+      m.category ? el('span', { text: m.category }) : null,
       el('span.dotsep', { text: '·' }),
       el('span', { text: num(S.data.words) + ' 字' }),
       el('span.dotsep', { text: '·' }),

@@ -153,7 +153,7 @@ window.BKN = window.BKN || {};
     } else {
       groups.push(editorGroup(), syncGroup());
     }
-    if (B.api) groups.push(tokenSection());
+    if (B.api) groups.push([tokenSection()]);
 
     const body = el('div.stack.gap-14');
     groups.forEach(g => { const sec = el('div.set-group'); g.forEach(n => sec.appendChild(n)); body.appendChild(sec); });

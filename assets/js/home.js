@@ -64,8 +64,8 @@
     const cats = ['全部'];
     const seen = [];
     S.all.forEach(b => {
-      const c = b.category || '其他';
-      if (!seen.includes(c)) seen.push(c);
+      const c = b.category;
+      if (c && !seen.includes(c)) seen.push(c);
     });
     seen.sort((a, b) => {
       const ia = CFG.CATEGORIES.indexOf(a), ib = CFG.CATEGORIES.indexOf(b);
@@ -84,7 +84,7 @@
   function filtered() {
     const q = S.q.trim().toLowerCase();
     let list = S.all.slice();
-    if (S.cat !== '全部') list = list.filter(b => (b.category || '其他') === S.cat);
+    if (S.cat !== '全部') list = list.filter(b => b.category === S.cat);
     if (q) {
       list = list.filter(b => {
         const hay = [b.title, b.author, b.intro, (b.tags || []).join(' ')].join(' ').toLowerCase();

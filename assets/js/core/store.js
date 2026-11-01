@@ -109,7 +109,7 @@ window.BKN = window.BKN || {};
         title: '未命名作品',
         author: '',
         intro: '',
-        category: '玄幻',
+        category: '',
         tags: [],
         status: 'ongoing',
         visibility: 'public',

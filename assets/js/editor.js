@@ -448,7 +448,7 @@
     const f = {
       title: el('input.input', { value: m.title || '', maxlength: '60' }),
       author: el('input.input', { value: m.author || (S.user ? S.user.name : ''), maxlength: '30', placeholder: S.user ? ('留空则署名「' + S.user.name + '」') : '笔名' }),
-      category: el('select.select', CFG.CATEGORIES.map(c => el('option', { value: c, text: c })).concat(
+      category: el('select.select', [el('option', { value: '', text: '未分类' })].concat(CFG.CATEGORIES.map(c => el('option', { value: c, text: c }))).concat(
         CFG.CATEGORIES.indexOf(m.category) < 0 && m.category ? [el('option', { value: m.category, text: m.category, selected: true })] : []
       )),
       status: el('select.select',
@@ -459,7 +459,7 @@
       intro: el('textarea.textarea', { rows: '4', maxlength: '500', placeholder: '一段能让人想点开的简介' }),
       private: el('input', { type: 'checkbox', checked: m.visibility === 'private' })
     };
-    f.category.value = m.category || '玄幻';
+    f.category.value = m.category || '';
     f.status.value = m.status === 'done' ? 'done' : 'ongoing';
     f.intro.value = m.intro || '';
 
