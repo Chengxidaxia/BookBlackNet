@@ -345,15 +345,24 @@ body.focus .focus-exit { display: inline-flex; }
   .desk-grid { grid-template-columns: 1fr; }
 }
 
-/* ---------------- 登录门（editor 未登录遮罩） ---------------- */
+/* ---------------- 登录门（editor / write 未登录遮罩） ---------------- */
+body.gate-locked { overflow: hidden; }
 body.gate-locked > :not(.login-gate) { filter: blur(6px); pointer-events: none; user-select: none; }
 .login-gate {
-  position: fixed; inset: 0; z-index: 300;
+  position: fixed; inset: 0; z-index: 9000;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 6px; text-align: center; padding: 32px;
-  background: color-mix(in srgb, var(--bg) 82%, transparent);
-  backdrop-filter: blur(2px);
+  gap: 10px; text-align: center; padding: 24px; overflow: auto;
+  background: var(--paper);
+  color: var(--ink);
 }
-.login-gate .muted { max-width: 460px; line-height: 1.8; }
-.login-gate .gate-form { width: min(360px, 88vw); text-align: left; }
+.login-gate > h2 {
+  margin: 0; font-family: var(--serif); font-size: 26px; font-weight: 600; color: var(--ink);
+}
+.login-gate .muted { max-width: 460px; line-height: 1.8; color: var(--ink-3); font-size: 13px; }
+.login-gate .gate-form {
+  width: min(380px, 90vw); text-align: left; margin-top: 8px;
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg);
+  padding: 22px; box-shadow: var(--sh-2); color: var(--ink);
+}
 .login-gate .gate-form .row { flex-wrap: wrap; }
+.login-gate .gate-form .label { color: var(--ink-3); font-size: 12px; }

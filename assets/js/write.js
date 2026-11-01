@@ -323,8 +323,6 @@
 
   /* 登录门：未登录不给进书架（新建/草稿都要账号） */
   function showLoginGate() {
-    const view = document.getElementById('shelf-view') || document.body;
-    view.innerHTML = '';
     let regMode = false;
     const fEmail = el('input.input', { type: 'email', placeholder: '邮箱', autocomplete: 'email' });
     const fPass = el('input.input', { type: 'password', placeholder: '口令（至少 8 位）', autocomplete: 'current-password' });
@@ -356,21 +354,22 @@
       nameField.classList.toggle('hidden', !regMode);
     });
 
-    view.appendChild(el('div', { style: { display: 'flex', justifyContent: 'center', paddingTop: '80px' } },
-      el('div.card', { style: { width: '360px', padding: '28px' } },
-        el('h3', { text: '写作前请先登录', style: { margin: '0 0 8px', textAlign: 'center' } }),
-        el('div.small', { text: '书架与草稿仅对登录用户开放。支持两种方式：群档案账号（主要用 GitHub 授权）、或本站邮箱账号，作品发布时以此署名。', style: { marginBottom: '16px' } }),
+    document.body.appendChild(el('div.stack.gap-12.login-gate',
+      el('h2', { text: '写作前请先登录' }),
+      el('div.muted', { text: '书架与草稿仅对登录用户开放。支持两种方式：群档案账号（与主站共用 GitHub 登录），或本站邮箱账号。作品发布时以账号署名。' }),
+      el('div.stack.gap-8.gate-form',
         el('div.field', el('label.label', { text: '邮箱' }), fEmail),
         nameField,
         el('div.field', el('label.label', { text: '口令' }), fPass),
         err,
-        el('div.row.gap-8', { style: { flexWrap: 'wrap', marginTop: '10px' } },
+        el('div.row.gap-8',
           goBtn, switchBtn,
           el('button.btn', { text: '群档案账号登录', on: { click: () => B.auth.login(location.href) } }),
           el('button.btn', { text: '重试', on: { click: () => location.reload() } })
         )
       )
     ));
+    document.body.classList.add('gate-locked');
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
