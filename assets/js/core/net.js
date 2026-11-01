@@ -168,3 +168,17 @@
 
   root.BNNET = { create };
 })(typeof window !== 'undefined' ? window : this);
+
+/* ---------------- Vercel Web Analytics（静态站直引官方脚本） ---------------- */
+/* book.blacknet.cc.cd 部署在 Vercel，同域自动提供 /_vercel/insights/script.js；
+   本机预览（localhost）时该路径不存在，跳过以免 404 报错。 */
+(function () {
+  'use strict';
+  if (typeof window === 'undefined') return;
+  const h = window.location && window.location.hostname;
+  if (h === 'localhost' || h === '127.0.0.1' || !h) return;
+  const s = document.createElement('script');
+  s.src = '/_vercel/insights/script.js';
+  s.defer = true;
+  document.head.appendChild(s);
+})();
