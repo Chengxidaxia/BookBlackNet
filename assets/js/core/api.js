@@ -505,5 +505,6 @@ window.BKN = window.BKN || {};
 
   B.api = { loadIndex, fetchBook, bookPath, bookUrl, publish, unpublish,
             checkToken, auth, resolveToken, utf8ToB64, b64ToUtf8, ghGet, ghPut,
-            cdnBases, stamp, bustCdn, verOf, net };
+            cdnBases, stamp, bustCdn, verOf, net,
+            utf8Len, makeChunks, CHUNK_MAX };
 })(window.BKN);

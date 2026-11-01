@@ -1,0 +1,55 @@
+/* ============================================================
+   convert.css — 格式转换工具页
+   ============================================================ */
+.conv-wrap { max-width: 980px; }
+
+.conv-hero { text-align: center; margin: 28px 0 26px; }
+.conv-title { font-size: 26px; margin: 0 0 8px; }
+.conv-hero .muted { max-width: 620px; margin: 0 auto; line-height: 1.7; }
+
+.conv-panels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+@media (max-width: 760px) { .conv-panels { grid-template-columns: 1fr; } }
+
+.conv-panel {
+  background: var(--surface, #fff);
+  border: 1px solid var(--line, #e5e0d8);
+  border-radius: 14px;
+  padding: 22px 20px;
+}
+.conv-h2 { font-size: 17px; margin: 0 0 6px; }
+.conv-arrow { color: var(--accent, #9c3a2c); margin: 0 4px; }
+.conv-panel > .small.muted { margin: 0 0 14px; }
+.conv-panel code {
+  background: rgba(0,0,0,.05);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: .9em;
+}
+
+.drop-zone {
+  border: 2px dashed var(--line, #d8d2c6);
+  border-radius: 12px;
+  padding: 34px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.drop-zone:hover, .drop-zone.drag {
+  border-color: var(--accent, #9c3a2c);
+  background: rgba(156,58,44,.04);
+}
+.dz-text { color: var(--muted, #8a8377); font-size: 14px; }
+.dz-text strong { color: var(--text, #33302a); }
+
+.conv-result {
+  margin-top: 12px;
+  font-size: 13px;
+  line-height: 1.7;
+  min-height: 20px;
+}
+.conv-result.ok { color: var(--ok, #2e7d4f); }
+.conv-result.err { color: var(--err, #b3402e); }

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>格式转换 · BookBlackNet</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%239c3a2c'/%3E%3Ctext x='16' y='23' font-size='19' text-anchor='middle' fill='%23fff' font-family='serif'%3E书%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/base.css">
+<link rel="stylesheet" href="assets/css/home.css">
+<link rel="stylesheet" href="assets/css/convert.css">
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-in">
+    <a class="brand" href="index.html">
+      <span class="brand-mark">书</span>
+      <span class="brand-txt">
+        <span class="brand-name">群书阁</span>
+        <span class="brand-sub">BookBlackNet</span>
+      </span>
+    </a>
+    <nav class="nav-links">
+      <a class="nav-link" href="index.html">书库</a>
+      <a class="nav-link" href="write.html">写作台</a>
+      <a class="nav-link on" href="convert.html">格式转换</a>
+      <a class="nav-link" href="https://grp.blacknet.cc.cd/" title="群档案 · 主站">群档案</a>
+    </nav>
+    <div class="nav-actions">
+      <a class="btn btn-primary btn-sm" href="write.html">开始写作</a>
+    </div>
+  </div>
+</header>
+
+<main class="page">
+  <div class="wrap conv-wrap">
+    <div class="conv-hero">
+      <h1 class="conv-title">格式转换工具</h1>
+      <p class="small muted">在 <strong>.bookp</strong>（单体文件）与 <strong>.zip</strong>（仓库分块形态）之间自由转换。全部在浏览器本地完成，文件不会上传到任何服务器。</p>
+    </div>
+
+    <div class="conv-panels">
+      <!-- bookp → zip -->
+      <section class="conv-panel" id="panel-p2z">
+        <h2 class="conv-h2">.bookp <span class="conv-arrow">→</span> .zip</h2>
+        <p class="small muted">把单体文件拆成「清单 <code>.book</code> + 分块 <code>.p001…</code>」，得到与书籍仓库一致的 zip。</p>
+        <div class="drop-zone" id="dz-p2z">
+          <input type="file" id="file-p2z" accept=".bookp" hidden>
+          <div class="dz-text">点击选择或拖入 <strong>.bookp</strong> 文件</div>
+        </div>
+        <div class="conv-result" id="out-p2z"></div>
+      </section>
+
+      <!-- zip → bookp -->
+      <section class="conv-panel" id="panel-z2p">
+        <h2 class="conv-h2">.zip <span class="conv-arrow">→</span> .bookp</h2>
+        <p class="small muted">读取 zip 里的清单与分块，按顺序拼回单体 <code>.bookp</code> 文件。</p>
+        <div class="drop-zone" id="dz-z2p">
+          <input type="file" id="file-z2p" accept=".zip" hidden>
+          <div class="dz-text">点击选择或拖入 <strong>.zip</strong> 文件</div>
+        </div>
+        <div class="conv-result" id="out-z2p"></div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-in">
+    <span>群书阁 BookBlackNet · 正文以密文存档</span>
+    <a href="https://grp.blacknet.cc.cd/">群档案 · 主站</a>
+  </div>
+</footer>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/core/util.js"></script>
+<script src="assets/js/core/net.js"></script>
+<script src="assets/js/core/api.js"></script>
+<script src="assets/js/convert.js"></script>
+</body>
+</html>

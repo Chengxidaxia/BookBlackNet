@@ -598,6 +598,58 @@
     const status = el('div.pub-status', el('span.dot'), el('span', { text: '准备就绪。发布后约 1 分钟生效。' }));
     const linkBox = el('div.hidden');
 
+    // —— .bookp 导入（单体旧格式 → 自动分块发布） ——
+    const fileInput = el('input', { type: 'file', accept: '.bookp,application/json', style: { display: 'none' } });
+    fileInput.addEventListener('change', async () => {
+      const f = fileInput.files && fileInput.files[0];
+      fileInput.value = '';
+      if (!f) return;
+      status.className = 'pub-status';
+      status.lastChild.textContent = '正在读取 ' + f.name + ' …';
+      try {
+        const text = await f.text();
+        const j = util.safeJSON(text, null);
+        if (!j || !j.crypto) throw new Error('不是有效的 .bookp 文件（缺少加密信息）');
+        const pub = j.pub || {};
+        if (!pub.id) throw new Error('.bookp 里没有作品编号（pub.id），无法发布');
+
+        // 令牌校验与「发布」一致
+        if (modeSel.value === 'github') {
+          const t = tokenInput.value.trim();
+          if (t && t.indexOf('•') < 0) api.auth.set(t);
+          if (!api.auth.get()) {
+            const got = await api.resolveToken(true);
+            if (!got) { toast('请填写 GitHub 访问令牌，或在群档案登录 GitHub 账号', 'err'); tokenInput.focus(); return; }
+          }
+        }
+        btnImport.disabled = true;
+        const oldI = btnImport.innerHTML;
+        btnImport.innerHTML = '<span class="spinner"></span> 发布中';
+        status.lastChild.textContent = '正在分块并上传…';
+        try {
+          const packed = { json: text, fileName: pub.id + '.book', bytes: api.utf8Len ? api.utf8Len(text) : text.length };
+          const entry = B.crypto.summaryOf({
+            id: pub.id, title: pub.title, author: pub.author, intro: pub.intro,
+            category: pub.category, tags: pub.tags, status: pub.status, visibility: pub.visibility,
+            chapters: pub.chapters, words: pub.words,
+            createdAt: pub.createdAt, updatedAt: new Date().toISOString()
+          });
+          const res = await api.publish(packed, entry);
+          status.className = 'pub-status ok';
+          status.lastChild.textContent = '导入发布成功（' + res.mode + '，' + (res.parts || 1) + ' 个分块）。页面通常 1 分钟内生效。';
+          toast('导入发布成功', 'ok');
+        } finally {
+          btnImport.disabled = false;
+          btnImport.innerHTML = oldI;
+        }
+      } catch (e) {
+        console.error(e);
+        status.className = 'pub-status err';
+        status.lastChild.textContent = '导入失败：' + e.message;
+      }
+    });
+    const btnImport = el('button.btn', { text: '导入 .bookp 发布', on: { click: () => fileInput.click() } });
+
     modeSel.addEventListener('change', () => {
       api.auth.setMode(modeSel.value);
       tokenWrap.classList.toggle('hidden', modeSel.value !== 'github' || hasToken);
@@ -613,6 +665,9 @@
         passWrap
       ),
       el('div.hint', { text: '令牌需要仓库 ' + CFG.REPO_OWNER + '/' + CFG.REPO_NAME + ' 的 contents 写入权限；只保存在本机浏览器，不会上传。不填也行——只要你在群档案登录过 GitHub 账号，会自动借用该登录态发布。' }),
+      el('div.row.gap-8', btnImport,
+        el('a.btn.btn-ghost', { href: 'convert.html', text: '.bookp ⇄ .zip 转换工具' })),
+      el('div.hint', { text: '.bookp = 单体旧格式文件；发布/导入后会自动按 ≤10MiB 分块存入仓库。' }),
       status,
       linkBox
     );
@@ -623,14 +678,15 @@
       body: body,
       actions: [
         {
-          label: '仅下载 .book', onClick: async ({ btn }) => {
+          label: '下载 .bookp', onClick: async ({ btn }) => {
             try {
               btn.disabled = true;
               const packed = await buildPacked();
-              util.download(packed.fileName, new Blob([packed.json], { type: 'application/json' }));
+              const name = packed.fileName.replace(/\.book$/i, '.bookp');
+              util.download(name, new Blob([packed.json], { type: 'application/json' }));
               status.className = 'pub-status ok';
-              status.lastChild.textContent = '已生成 ' + packed.fileName + '（' + (packed.bytes / 1024).toFixed(1) + ' KB），可手动放进 ' + CFG.BOOKS_DIR + '/';
-              toast('已下载 .book', 'ok');
+              status.lastChild.textContent = '已生成 ' + name + '（' + (packed.bytes / 1024).toFixed(1) + ' KB）单体文件，可在「格式转换」页转成 zip 分块包。';
+              toast('已下载 .bookp', 'ok');
             } catch (e) {
               status.className = 'pub-status err';
               status.lastChild.textContent = e.message;
