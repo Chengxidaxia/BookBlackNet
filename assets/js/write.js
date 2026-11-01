@@ -309,7 +309,13 @@
   async function boot() {
     bind();
     // 写作需登录（GitHub 会话 或 邮箱账号）：未登录不给看/建本地草稿
-    const user = await B.auth.me();
+    let user = null;
+    try {
+      user = (B.auth && await B.auth.me()) || null;
+    } catch (e) {
+      console.error('登录态检查失败', e);
+      user = null;
+    }
     if (!user) { showLoginGate(); return; }
     // 兼容老的 ?id= / ?d= 直达编辑器入口
     const id = util.qs('id') || util.qs('d');
