@@ -189,7 +189,7 @@
   async function importFile(file) {
     const name = file.name.toLowerCase();
     if (name.endsWith('.md') || name.endsWith('.txt')) return importMarkdownAsBook(file);
-    if (name.endsWith('.json') && !name.endsWith('.book')) {
+    if (name.endsWith('.json') || name.endsWith('.bookp')) {
       const text = await file.text();
       const j = safeJSON(text, null);
       if (j && j.format === 'bookblacknet.workspace') {
@@ -199,11 +199,10 @@
         return;
       }
       if (j && j.format === 'bookblacknet.book') return importBookJSON(text, file);
-      toast('无法识别的文件', 'err');
+      toast('无法识别的文件（需要 .bookp 单体文件）', 'err');
       return;
     }
-    const text = await file.text();
-    return importBookJSON(text, file);
+    toast('不支持的文件类型', 'err');
   }
 
   async function importBookJSON(text, file) {
@@ -288,7 +287,7 @@
     els.btnNew.addEventListener('click', createBook);
     els.btnSettings.addEventListener('click', () => B.settings.open());
     els.btnImport.addEventListener('click', () => {
-      els.fileHidden.accept = '.book,.json,.md,.txt';
+      els.fileHidden.accept = '.bookp,.json,.md,.txt';
       els.fileHidden.value = '';
       els.fileHidden.click();
     });
