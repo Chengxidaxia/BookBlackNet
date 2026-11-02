@@ -97,19 +97,23 @@ window.BKN = window.BKN || {};
           ),
           el('button.btn.btn-ghost', {
             text: '下载 .bookp',
-            onclick: async (ev) => {
-              const btn = ev.currentTarget || ev.target;
-              const old = btn.textContent;
-              btn.disabled = true; btn.textContent = '打包中…';
-              try {
-                const text = await B.api.fetchBook(entry.id);
-                const j = JSON.parse(text);
-                if (!j || !j.crypto) throw new Error('书籍数据无效');
-                const name = (entry.title || entry.id).replace(/[\\/:*?"<>|]/g, '_') + '.bookp';
-                B.util.download(name, new Blob([text], { type: 'application/json' }));
-                B.util.toast('已下载 ' + name, 'ok');
-              } catch (e) { B.util.toast('下载失败：' + e.message, 'err'); }
-              finally { btn.disabled = false; btn.textContent = old; }
+            // 注意：el() 只认 on:{click:fn}，写成 onclick:fn 会被 setAttribute
+            // 转成函数源码字符串，点了没有任何反应（踩过）。
+            on: {
+              click: async (ev) => {
+                const btn = ev.currentTarget;
+                const old = btn.textContent;
+                btn.disabled = true; btn.textContent = '打包中…';
+                try {
+                  const text = await B.api.fetchBook(entry.id);
+                  const j = B.util.safeJSON(text, null);
+                  if (!j || !j.crypto) throw new Error('书籍数据无效');
+                  const name = String(entry.title || entry.id).replace(/[\\/:*?"<>|]/g, '_') + '.bookp';
+                  B.util.download(name, new Blob([text], { type: 'application/json' }));
+                  B.util.toast('已下载 ' + name, 'ok');
+                } catch (e) { B.util.toast('下载失败：' + e.message, 'err'); }
+                finally { btn.disabled = false; btn.textContent = old; }
+              }
             }
           }),
           el('a.btn.btn-ghost', { href: 'index.html' }, '返回书库'),
