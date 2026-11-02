@@ -36,7 +36,7 @@
   <div class="wrap conv-wrap">
     <div class="conv-hero">
       <h1 class="conv-title">格式转换工具</h1>
-      <p class="small muted">在 <strong>.bookp</strong>（单体文件）与 <strong>.zip</strong>（仓库分块形态）之间自由转换。全部在浏览器本地完成，文件不会上传到任何服务器。</p>
+      <p class="small muted">支持 <strong>.bookp</strong>（书阁单体文件）、<strong>.zip</strong>（仓库分块形态）、<strong>.epub</strong>（通用电子书）之间的互转。全部在浏览器本地完成，文件不会上传到任何服务器。</p>
     </div>
 
     <div class="conv-panels">
@@ -61,6 +61,31 @@
         </div>
         <div class="conv-result" id="out-z2p"></div>
       </section>
+
+      <!-- epub → bookp -->
+      <section class="conv-panel" id="panel-e2p">
+        <h2 class="conv-h2">.epub <span class="conv-arrow">→</span> .bookp</h2>
+        <p class="small muted">解析 EPUB 的章节结构与正文，转成书阁的单体 <code>.bookp</code>（已加密，公开书）。</p>
+        <div class="drop-zone" id="dz-e2p">
+          <input type="file" id="file-e2p" accept=".epub" hidden>
+          <div class="dz-text">点击选择或拖入 <strong>.epub</strong> 文件</div>
+        </div>
+        <div class="conv-result" id="out-e2p"></div>
+      </section>
+
+      <!-- bookp → epub -->
+      <section class="conv-panel" id="panel-p2e">
+        <h2 class="conv-h2">.bookp <span class="conv-arrow">→</span> .epub</h2>
+        <p class="small muted">解开正文并生成标准 EPUB 3（含目录与封面），可在 Apple Books、Calibre、微信读书等阅读器打开。</p>
+        <div class="conv-field">
+          <input type="password" id="pass-p2e" class="conv-pass" placeholder="阅读口令（公开书留空）" autocomplete="off">
+        </div>
+        <div class="drop-zone" id="dz-p2e">
+          <input type="file" id="file-p2e" accept=".bookp" hidden>
+          <div class="dz-text">点击选择或拖入 <strong>.bookp</strong> 文件</div>
+        </div>
+        <div class="conv-result" id="out-p2e"></div>
+      </section>
     </div>
   </div>
 </main>
@@ -76,6 +101,9 @@
 <script src="assets/js/core/util.js"></script>
 <script src="assets/js/core/net.js"></script>
 <script src="assets/js/core/api.js"></script>
+<script src="assets/js/core/markdown.js"></script>
+<script src="assets/js/core/crypto.js"></script>
 <script src="assets/js/convert.js"></script>
+<script src="assets/js/epub.js"></script>
 </body>
 </html>

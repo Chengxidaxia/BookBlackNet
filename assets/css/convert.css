@@ -30,6 +30,19 @@
   font-size: .9em;
 }
 
+.conv-field { margin: 0 0 12px; }
+.conv-pass {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px 12px;
+  font-size: 14px;
+  border: 1px solid var(--line, #e5e0d8);
+  border-radius: 9px;
+  background: var(--surface, #fff);
+  color: var(--text, #33302a);
+}
+.conv-pass:focus { outline: none; border-color: var(--accent, #9c3a2c); }
+
 .drop-zone {
   border: 2px dashed var(--line, #d8d2c6);
   border-radius: 12px;

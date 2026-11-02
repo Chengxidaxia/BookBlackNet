@@ -32,7 +32,7 @@
     for (let i = 0; i < u8.length; i++) c = CRC_TABLE[(c ^ u8[i]) & 0xFF] ^ (c >>> 8);
     return (c ^ 0xFFFFFFFF) >>> 0;
   }
-  function buildZip(files) {           // files: [{name, data:Uint8Array}]
+  function buildZip(files, type) {     // files: [{name, data:Uint8Array}]
     const enc = new TextEncoder();
     const chunks = [], central = [];
     let offset = 0;
@@ -61,12 +61,13 @@
       ...u32(0x06054b50), ...u16(0), ...u16(0), ...u16(files.length), ...u16(files.length),
       ...u32(centralSize), ...u32(offset), ...u16(0)
     ]);
-    return new Blob([...chunks, ...central, eocd], { type: 'application/zip' });
+    return new Blob([...chunks, ...central, eocd], { type: type || 'application/zip' });
   }
 
   /* ---------------- ZIP 读（store + deflate） ---------------- */
   async function readZip(buf) {        // → [{name, data:Uint8Array}]
     const u8 = new Uint8Array(buf);
+    if (u8.length < 22) throw new Error('不是有效的 zip 文件（体积过小）');
     const dv = new DataView(buf);
     // 从尾部找 EOCD（0x06054b50）
     let eocd = -1;
@@ -194,5 +195,8 @@
   bindPanel('dz-p2z', 'file-p2z', 'out-p2z', bookpToZip);
   bindPanel('dz-z2p', 'file-z2p', 'out-z2p', zipToBookp);
 
-  root.convert = { buildZip: buildZip, readZip: readZip, bookpToZip: bookpToZip, zipToBookp: zipToBookp };
+  root.convert = {
+    buildZip: buildZip, readZip: readZip, bookpToZip: bookpToZip, zipToBookp: zipToBookp,
+    bindPanel: bindPanel, result: result      // epub.js 复用面板绑定与结果渲染
+  };
 })(window.BKN);
