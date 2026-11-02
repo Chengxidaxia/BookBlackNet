@@ -1,8 +1,29 @@
 {
   "format": "bookblacknet.index",
   "v": 1,
-  "updatedAt": "2026-10-28T14:12:24.303Z",
+  "updatedAt": "2026-11-02T12:02:25.663Z",
   "books": [
+    {
+      "id": "bk_mvx8msy4fzgjau",
+      "title": "未test作品",
+      "author": "城西大侠",
+      "intro": "",
+      "category": "其他",
+      "tags": [],
+      "status": "done",
+      "visibility": "public",
+      "cover": {
+        "type": "letter",
+        "from": "#6b5340",
+        "to": "#31241a",
+        "text": "未"
+      },
+      "chapters": 1,
+      "words": 3,
+      "updatedAt": "2026-11-01T11:59:28.777Z",
+      "file": "bk_mvx8msy4fzgjau.book",
+      "chunks": 1
+    },
     {
       "id": "bk_sample_longnight",
       "title": "长夜将明",
