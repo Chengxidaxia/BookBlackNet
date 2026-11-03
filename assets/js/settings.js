@@ -77,7 +77,7 @@ window.BKN = window.BKN || {};
     return [
       el('h4.set-h', { text: '云同步' }),
       switchRow('草稿自动同步到云端（Gist）',
-        '需要「云同步令牌」；关闭后仅手动同步。', 'sync.autoGist'),
+        '用群档案 GitHub 账号登录后自动可用，不必再填令牌；邮箱账号需另填含 gist 权限的令牌。', 'sync.autoGist'),
       numRow('自动同步延迟', 'sync.gistDelaySec', 3, 60, 1, ' 秒'),
       switchRow('阅读进度云同步', '在同一 Gist 里同步每本书读到哪了。', 'sync.progressSync'),
       el('div.hint', { text: '令牌在下方「GitHub 访问令牌」填写；classic token 需勾选 gist 权限，fine-grained token 不支持 Gist。' })

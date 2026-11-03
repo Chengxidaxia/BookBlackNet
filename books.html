@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>全部书籍 · BookBlackNet</title>
+<link rel="canonical" href="https://book.blacknet.cc.cd/books.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="群书阁">
+<meta property="og:title" content="全部书籍 · BookBlackNet">
+<meta property="og:url" content="https://book.blacknet.cc.cd/books.html">
+<meta name="description" content="群书阁全部书籍：按最近更新排序，支持书名、作者、简介与标签搜索，可筛选分类。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%239c3a2c'/%3E%3Ctext x='16' y='23' font-size='19' text-anchor='middle' fill='%23fff' font-family='serif'%3E书%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/base.css">
+<link rel="stylesheet" href="assets/css/home.css">
+<link rel="stylesheet" href="assets/css/books.css">
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-in">
+    <a class="brand" href="index.html">
+      <span class="brand-mark">书</span>
+      <span class="brand-txt">
+        <span class="brand-name">群书阁</span>
+        <span class="brand-sub">BookBlackNet</span>
+      </span>
+    </a>
+    <nav class="nav-links">
+      <a class="nav-link on" href="index.html">书库</a>
+      <a class="nav-link" href="write.html">写作台</a>
+      <a class="nav-link" href="shelf.html">我的书架</a>
+      <a class="nav-link" href="convert.html">格式转换</a>
+      <a class="nav-link" href="sponsor.html">赞助</a>
+      <a class="nav-link" href="https://grp.blacknet.cc.cd/" title="群档案 · 主站">群档案</a>
+    </nav>
+    <div class="nav-actions">
+      <a class="btn btn-primary btn-sm" href="write.html">开始写作</a>
+    </div>
+  </div>
+</header>
+
+<main class="page">
+  <section class="wrap lib-wrap">
+    <div class="lib-head">
+      <div>
+        <h1 class="lib-title">全部书籍</h1>
+        <p class="lib-sub" id="lib-sub">正在读取书目…</p>
+      </div>
+      <a class="btn btn-sm" href="index.html">返回首页</a>
+    </div>
+
+    <div class="lib-tools">
+      <div class="lib-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input id="lib-q" type="search" placeholder="搜书名、作者、简介或标签…" autocomplete="off" aria-label="搜索书籍">
+      </div>
+      <div class="chips" id="lib-cats"></div>
+      <select class="select select-sm" id="lib-sort" aria-label="排序方式">
+        <option value="updated">最近更新</option>
+        <option value="words">字数最多</option>
+        <option value="title">书名</option>
+        <option value="created">最新创建</option>
+      </select>
+    </div>
+
+    <div class="book-grid" id="lib-grid">
+      <div class="skel skel-card"></div>
+      <div class="skel skel-card"></div>
+      <div class="skel skel-card"></div>
+      <div class="skel skel-card"></div>
+      <div class="skel skel-card"></div>
+      <div class="skel skel-card"></div>
+    </div>
+
+    <div class="lib-pager" id="lib-pager"></div>
+
+    <div class="empty hidden" id="lib-empty">
+      <div class="empty-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v18H6.5A2.5 2.5 0 0 1 4 18.5v-13z"/><path d="M8 7h7M8 11h5"/></svg>
+      </div>
+      <div class="empty-title" id="lib-empty-title">没有匹配的作品</div>
+      <div class="empty-desc" id="lib-empty-desc">换个关键词，或者选「全部」分类看看。</div>
+      <a class="btn btn-primary" href="index.html">返回书库</a>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-in">
+    <span class="brand-mark" style="width:22px;height:22px;border-radius:6px;font-size:12px">书</span>
+    <span>群书阁 · BookBlackNet</span>
+    <span class="muted">正文以 AES-GCM 密文存储</span>
+    <div class="spacer"></div>
+    <a href="write.html">写作台</a>
+  </div>
+</footer>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/core/util.js"></script>
+<script src="assets/js/core/ui.js"></script>
+<script src="assets/js/core/crypto.js"></script>
+<script src="assets/js/core/markdown.js"></script>
+<script src="assets/js/core/net.js"></script>
+<script src="assets/js/core/api.js"></script>
+<script src="assets/js/core/auth.js"></script>
+<script src="assets/js/core/fav.js"></script>
+<script src="assets/js/core/account.js"></script>
+<script src="assets/js/books.js"></script>
+</body>
+</html>

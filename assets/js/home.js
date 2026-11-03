@@ -12,7 +12,8 @@
   const els = {};
   ['book-grid', 'cat-chips', 'sort-sel', 'search-form', 'search-input', 'hero-stats',
     'stat-books', 'stat-words', 'stat-chaps', 'book-stack', 'shelf-empty', 'empty-title',
-    'empty-desc', 'continue-sec', 'continue-row', 'shelf-desc'
+    'empty-desc', 'continue-sec', 'continue-row', 'shelf-desc',
+    'shelf-more', 'more-count', 'more-hint'
   ].forEach(id => { els[id.replace(/-([a-z])/g, (_, c) => c.toUpperCase())] = document.getElementById(id); });
 
   const S = Object.assign({
@@ -114,6 +115,7 @@
         ? '没有读到书目索引（' + CFG.INDEX_FILE + '）。如果刚发布，等 GitHub Pages 构建完成再刷新。'
         : '发布第一本书之后，它就会出现在这里。';
       els.shelfDesc.textContent = '全部作品';
+      if (els.shelfMore) els.shelfMore.classList.add('hidden');
       return;
     }
     els.bookGrid.classList.remove('hidden');
@@ -123,12 +125,26 @@
       els.emptyTitle.textContent = '没有匹配的作品';
       els.emptyDesc.textContent = '换个关键词，或者选「全部」分类看看。';
       els.shelfDesc.textContent = '0 本';
+      if (els.shelfMore) els.shelfMore.classList.add('hidden');
       return;
     }
 
     els.shelfDesc.textContent = list.length + ' 本' + (S.cat !== '全部' ? ' · ' + S.cat : '') + (S.q ? ' · 搜索「' + S.q + '」' : '');
 
-    list.forEach(b => {
+    // 首页最多 10 本（默认按最近更新排序），其余去 books.html
+    const HOME_LIMIT = 10;
+    const visible = list.slice(0, HOME_LIMIT);
+    if (els.shelfMore) {
+      const more = list.length > HOME_LIMIT;
+      els.shelfMore.classList.toggle('hidden', !more);
+      if (more) {
+        els.moreCount.textContent = list.length;
+        els.moreHint.textContent = '当前按「' + (els.sortSel && els.sortSel.options[els.sortSel.selectedIndex]
+          ? els.sortSel.options[els.sortSel.selectedIndex].text : '最近更新') + '」排序';
+      }
+    }
+
+    visible.forEach(b => {
       const cov = B.crypto.coverOf(b);
       const card = el('div.book-card', { data: { id: b.id } },
         el('div.bc-cover', { style: coverStyle(cov) },

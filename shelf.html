@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>我的书架 · BookBlackNet</title>
+<link rel="canonical" href="https://book.blacknet.cc.cd/shelf.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="群书阁">
+<meta property="og:title" content="我的书架 · BookBlackNet">
+<meta property="og:url" content="https://book.blacknet.cc.cd/shelf.html">
+<meta name="description" content="群书阁我的书架：收藏的书与最近阅读进度。未登录保存在本机，登录后同步到账号。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%239c3a2c'/%3E%3Ctext x='16' y='23' font-size='19' text-anchor='middle' fill='%23fff' font-family='serif'%3E书%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/base.css">
+<link rel="stylesheet" href="assets/css/home.css">
+<link rel="stylesheet" href="assets/css/shelf.css">
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-in">
+    <a class="brand" href="index.html">
+      <span class="brand-mark">书</span>
+      <span class="brand-txt">
+        <span class="brand-name">群书阁</span>
+        <span class="brand-sub">BookBlackNet</span>
+      </span>
+    </a>
+    <nav class="nav-links">
+      <a class="nav-link" href="index.html">书库</a>
+      <a class="nav-link" href="write.html">写作台</a>
+      <a class="nav-link on" href="shelf.html">我的书架</a>
+      <a class="nav-link" href="convert.html">格式转换</a>
+      <a class="nav-link" href="sponsor.html">赞助</a>
+      <a class="nav-link" href="https://grp.blacknet.cc.cd/" title="群档案 · 主站">群档案</a>
+    </nav>
+    <div class="nav-actions">
+      <a class="btn btn-primary btn-sm" href="index.html">去书库</a>
+    </div>
+  </div>
+</header>
+
+<main class="page">
+  <section class="wrap sh-wrap">
+    <div class="sh-head">
+      <div>
+        <h1 class="sh-title">我的书架</h1>
+        <p class="sh-sub" id="sh-state">正在读取…</p>
+      </div>
+      <div class="sh-acts">
+        <button class="btn btn-sm" id="sh-sync" type="button">同步到账号</button>
+        <a class="btn btn-primary btn-sm" href="index.html">去书库找书</a>
+      </div>
+    </div>
+
+    <div class="sh-tabs" role="tablist">
+      <button class="sh-tab on" type="button" data-tab="fav" role="tab">收藏<span class="sh-num" id="sh-fav-count">0</span></button>
+      <button class="sh-tab" type="button" data-tab="recent" role="tab">最近阅读<span class="sh-num" id="sh-recent-count">0</span></button>
+    </div>
+
+    <!-- 收藏 -->
+    <div id="sh-fav" class="book-grid"></div>
+    <div id="sh-fav-empty" class="empty hidden">
+      <div class="empty-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 20s-7-4.4-7-9.3A3.9 3.9 0 0 1 12 7.9 3.9 3.9 0 0 1 19 10.7C19 15.6 12 20 12 20z"/></svg>
+      </div>
+      <div class="empty-title">还没有收藏</div>
+      <div class="empty-desc">在书籍详情页点「收藏」，书就会出现在这里。</div>
+      <a class="btn btn-primary" href="index.html">去书库看看</a>
+    </div>
+
+    <!-- 最近阅读 -->
+    <div id="sh-recent" class="sh-list hidden"></div>
+    <div id="sh-recent-empty" class="empty hidden">
+      <div class="empty-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v18H6.5A2.5 2.5 0 0 1 4 18.5v-13z"/><path d="M8 8h7M8 12h5"/></svg>
+      </div>
+      <div class="empty-title">还没有阅读记录</div>
+      <div class="empty-desc">开始读一本书，进度会自动记在这里（可继续上次的位置）。</div>
+      <a class="btn btn-primary" href="index.html">去书库</a>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-in">
+    <span class="brand-mark" style="width:22px;height:22px;border-radius:6px;font-size:12px">书</span>
+    <span>群书阁 · BookBlackNet</span>
+    <span class="muted">书架只存书籍编号与进度，不存正文</span>
+    <div class="spacer"></div>
+    <a href="write.html">写作台</a>
+  </div>
+</footer>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/core/util.js"></script>
+<script src="assets/js/core/ui.js"></script>
+<script src="assets/js/core/crypto.js"></script>
+<script src="assets/js/core/markdown.js"></script>
+<script src="assets/js/core/net.js"></script>
+<script src="assets/js/core/api.js"></script>
+<script src="assets/js/core/auth.js"></script>
+<script src="assets/js/core/fav.js"></script>
+<script src="assets/js/core/account.js"></script>
+<script src="assets/js/myshelf.js"></script>
+</body>
+</html>

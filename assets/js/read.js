@@ -228,6 +228,8 @@
     };
     const next = [item].concat(shelf.filter(x => x && x.id !== S.bookId)).slice(0, 24);
     LS.set('bbn.shelf', next);
+    // 触发账号书架同步（登录时会延迟推送到 /api/shelf，未登录是空操作）
+    if (B.fav) B.fav.progressChanged();
   }
 
   /* ============================================================

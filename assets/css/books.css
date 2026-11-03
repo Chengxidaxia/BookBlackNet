@@ -1,0 +1,52 @@
+/* ============================================================
+   books.css — 全部书籍页（books.html）
+   卡片 / chips / 下拉沿用 home.css，这里只加页头、搜索框与分页。
+   ============================================================ */
+
+.lib-wrap { padding: 40px 0 72px; }
+
+.lib-head {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap;
+  padding-bottom: 16px; border-bottom: 1px solid var(--line);
+}
+.lib-title { font-family: var(--serif); font-size: 34px; font-weight: 700; margin: 0 0 6px; letter-spacing: -.01em; }
+.lib-sub { font-size: 13.5px; color: var(--ink-3); margin: 0; }
+
+.lib-tools {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  margin: 18px 0 26px;
+}
+.lib-search {
+  display: flex; align-items: center; gap: 8px;
+  height: 38px; padding: 0 13px; min-width: min(100%, 300px); flex: 1 1 240px; max-width: 380px;
+  border: 1px solid var(--line); border-radius: 9px; background: var(--card); color: var(--ink-3);
+}
+.lib-search:focus-within { border-color: var(--line-2); color: var(--ink-2); }
+.lib-search svg { width: 15px; height: 15px; flex: 0 0 auto; }
+.lib-search input {
+  flex: 1; min-width: 0; border: 0; outline: 0; background: none;
+  font-family: var(--sans); font-size: 13.5px; color: var(--ink);
+}
+
+.lib-pager {
+  display: flex; align-items: center; justify-content: center;
+  gap: 6px; flex-wrap: wrap;
+  margin: 38px 0 0;
+}
+.lib-pager button {
+  min-width: 36px; height: 36px; padding: 0 10px;
+  border: 1px solid var(--line); border-radius: 8px;
+  background: var(--card); color: var(--ink-2);
+  font-family: var(--sans); font-size: 13px; cursor: pointer;
+  transition: border-color .18s, background .18s, color .18s;
+}
+.lib-pager button:hover:not(:disabled):not(.on) { border-color: var(--line-2); background: var(--paper-2); }
+.lib-pager button.on { background: var(--ink); border-color: var(--ink); color: var(--paper); font-weight: 600; }
+.lib-pager button:disabled { opacity: .38; cursor: not-allowed; }
+.lib-gap { color: var(--ink-4); padding: 0 4px; font-size: 13px; }
+
+@media (max-width: 640px) {
+  .lib-title { font-size: 27px; }
+  .lib-search { max-width: none; }
+}

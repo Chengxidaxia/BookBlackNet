@@ -28,7 +28,7 @@
     <nav class="nav-links">
       <a class="nav-link on" href="index.html">书库</a>
       <a class="nav-link" href="write.html">写作台</a>
-      <a class="nav-link" href="#shelf">我的书架</a>
+      <a class="nav-link" href="shelf.html">我的书架</a>
       <a class="nav-link" href="convert.html">格式转换</a>
       <a class="nav-link" href="sponsor.html">赞助</a>
       <a class="nav-link" href="https://grp.blacknet.cc.cd/" title="群档案 · 主站">群档案</a>
@@ -90,8 +90,8 @@
   <section class="wrap sec" id="shelf">
     <div class="sec-head shelf-head">
       <div>
-        <h2 class="sec-title">书架</h2>
-        <p class="sec-desc" id="shelf-desc">全部作品</p>
+        <h2 class="sec-title">最近更新</h2>
+        <p class="sec-desc" id="shelf-desc">最近发布的 10 本</p>
       </div>
       <div class="shelf-tools">
         <div class="chips" id="cat-chips"></div>
@@ -120,6 +120,12 @@
       <div class="empty-desc" id="empty-desc">发布第一本书之后，它就会出现在这里。</div>
       <a class="btn btn-primary" href="write.html">去写第一本</a>
     </div>
+
+    <!-- 首页只展示最近更新的 10 本，其余去「全部书籍」页 -->
+    <div class="shelf-more hidden" id="shelf-more">
+      <a class="btn" href="books.html">查看全部 <b id="more-count">0</b> 本</a>
+      <span class="shelf-more-hint" id="more-hint">按最近更新排序</span>
+    </div>
   </section>
 </main>
 
@@ -129,16 +135,22 @@
     <span>群书阁 · BookBlackNet</span>
     <span class="muted">正文以 AES-GCM 密文存储</span>
     <div class="spacer"></div>
+    <a href="books.html">全部书籍</a>
+    <a href="shelf.html">我的书架</a>
     <a href="write.html">写作台</a>
   </div>
 </footer>
 
 <script src="assets/js/config.js"></script>
 <script src="assets/js/core/util.js"></script>
+<script src="assets/js/core/ui.js"></script>
 <script src="assets/js/core/crypto.js"></script>
 <script src="assets/js/core/markdown.js"></script>
 <script src="assets/js/core/net.js"></script>
 <script src="assets/js/core/api.js"></script>
+<script src="assets/js/core/auth.js"></script>
+<script src="assets/js/core/fav.js"></script>
+<script src="assets/js/core/account.js"></script>
 <script src="assets/js/home.js"></script>
 </body>
 </html>

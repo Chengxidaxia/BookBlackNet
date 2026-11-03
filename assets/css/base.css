@@ -359,3 +359,52 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 0; }
   .wrap, .nav-in { padding: 0 16px; }
   .brand-sub { display: none; }
 }
+
+/* ---------- 顶栏账号区（core/account.js） ---------- */
+.nav-user { display: flex; align-items: center; }
+.acct { position: relative; }
+.acct-btn {
+  display: flex; align-items: center; gap: 7px;
+  height: 34px; padding: 0 9px 0 4px;
+  border: 1px solid var(--line); border-radius: 999px;
+  background: var(--card); cursor: pointer; font-family: var(--sans);
+  transition: border-color .18s, box-shadow .18s;
+}
+.acct-btn:hover { border-color: var(--line-2); box-shadow: var(--sh-1); }
+.acct-avatar {
+  width: 26px; height: 26px; border-radius: 50%; overflow: hidden;
+  display: grid; place-items: center; flex: 0 0 auto;
+  background: var(--accent-soft); color: var(--accent);
+  font-size: 12px; font-weight: 700; line-height: 1;
+}
+.acct-avatar.lg { width: 34px; height: 34px; font-size: 14px; }
+.acct-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.acct-initial { display: grid; place-items: center; width: 100%; height: 100%; }
+.acct-name {
+  font-size: 13px; color: var(--ink-2); max-width: 92px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.acct-caret { font-size: 9px; color: var(--ink-4); }
+
+.acct-menu {
+  position: absolute; right: 0; top: calc(100% + 8px); z-index: 80;
+  min-width: 172px; padding: 6px;
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 12px; box-shadow: var(--sh-2);
+}
+.acct-menu a, .acct-item {
+  display: block; width: 100%; text-align: left;
+  padding: 9px 11px; border: 0; border-radius: 7px;
+  background: none; cursor: pointer;
+  font-family: var(--sans); font-size: 13.5px; color: var(--ink-2);
+  text-decoration: none; white-space: nowrap;
+}
+.acct-menu a:hover, .acct-item:hover { background: var(--paper-2); color: var(--ink); }
+.acct-item.danger { color: var(--err); }
+.acct-item.danger:hover { background: #fbeeec; }
+
+@media (max-width: 760px) {
+  .acct-name, .acct-caret { display: none; }
+  .acct-btn { padding: 0 4px; }
+  .nav-user .nav-login { height: 32px; padding: 0 10px; font-size: 13px; }
+}

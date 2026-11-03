@@ -53,7 +53,15 @@
       if (r.status === 401) return null;
     } catch (e) { /* 本地无 Function（GitHub Pages 镜像等）→ 回退 */ }
     // 兜底：直连 oauth Worker（需其 CORS 白名单包含本域）
-    const r = await netFetch(ME_URL, { credentials: 'include' });
+    // 加超时：本地预览 / 后端不可达时不要一直挂着，最多等 4 秒
+    const ac = typeof AbortController === 'function' ? new AbortController() : null;
+    const timer = ac ? setTimeout(() => ac.abort(), 4000) : null;
+    let r;
+    try {
+      r = await netFetch(ME_URL, { credentials: 'include', signal: ac ? ac.signal : undefined });
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
     if (r.ok) {
       const u = await r.json();
       return (u && u.login) ? { provider: 'github', login: u.login, name: u.name || u.login, avatar: u.avatar_url || '' } : null;

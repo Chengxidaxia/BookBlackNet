@@ -50,6 +50,25 @@ window.BKN = window.BKN || {};
     return { background: 'linear-gradient(155deg,' + (cov.from || '#37506e') + ',' + (cov.to || '#1a283a') + ')' };
   }
 
+  /** 收藏按钮：未登录也能用（存本机），登录后自动并入账号 */
+  function favButton(entry) {
+    const on = B.fav.has(entry.id);
+    const btn = el('button.btn.btn-ghost', { type: 'button', text: on ? '★ 已收藏' : '☆ 收藏' });
+    if (on) btn.classList.add('is-on');
+    btn.addEventListener('click', () => {
+      const added = B.fav.toggle({
+        id: entry.id,
+        title: entry.title,
+        author: entry.author,
+        cover: B.crypto.coverOf(entry)
+      });
+      btn.textContent = added ? '★ 已收藏' : '☆ 收藏';
+      btn.classList.toggle('is-on', added);
+      B.util.toast(added ? '已加入我的书架' : '已从我的书架移除', 'ok');
+    });
+    return btn;
+  }
+
   function render(entry) {
     document.title = (entry.title || '书籍详情') + ' · BookBlackNet';
 
@@ -95,6 +114,7 @@ window.BKN = window.BKN || {};
             hasProg ? '继续阅读' : '开始阅读',
             hasProg && prog.c ? el('span.small', { text: '（第 ' + (prog.c + 1) + ' 章）', style: { marginLeft: '6px', opacity: '.85' } }) : null
           ),
+          (B.fav ? favButton(entry) : null),
           el('button.btn.btn-ghost', {
             text: '下载 .bookp',
             // 注意：el() 只认 on:{click:fn}，写成 onclick:fn 会被 setAttribute

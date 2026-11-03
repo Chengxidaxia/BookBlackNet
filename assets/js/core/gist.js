@@ -43,10 +43,26 @@ window.BKN = window.BKN || {};
   }
   function onStatus(fn) { statusCbs.push(fn); fn(status); }
 
-  /* ---------------- 令牌 ---------------- */
+  /* ---------------- 令牌 ----------------
+     解析顺序：
+       ① 设置里单独填的 Gist 令牌（bbn.gist.pat）
+       ② 发布令牌（bbn.pat，localStorage）
+       ③ 群档案登录态换来的令牌（同源 /api/token 读 HttpOnly Cookie，会话级缓存）
+     ③ 让「用群档案账号登录」的用户不需要再手动填令牌就能自动云同步。 */
+  let _sessionTok = '';
+
   function token() {
-    try { return localStorage.getItem(TOK_KEY) || (B.api && B.api.auth.get()) || ''; }
-    catch (e) { return ''; }
+    try {
+      return localStorage.getItem(TOK_KEY) || (B.api && B.api.auth.get()) || _sessionTok || '';
+    } catch (e) { return _sessionTok || ''; }
+  }
+
+  async function ensureToken() {
+    if (token()) return token();
+    if (B.api && B.api.resolveToken) {
+      try { _sessionTok = (await B.api.resolveToken()) || ''; } catch (e) { _sessionTok = ''; }
+    }
+    return token();
   }
   function setToken(t) { try { localStorage.setItem(TOK_KEY, t || ''); } catch (e) {} }
   function clearToken() { try { localStorage.removeItem(TOK_KEY); } catch (e) {} }
@@ -58,7 +74,7 @@ window.BKN = window.BKN || {};
 
   /* ---------------- GitHub Gist API ---------------- */
   async function gapi(path, opt) {
-    const t = token();
+    const t = await ensureToken();
     if (!t) throw new Error('no-token');
     const o = Object.assign({
       headers: {
@@ -112,6 +128,7 @@ window.BKN = window.BKN || {};
 
   /** 推一本书（脏才推） */
   async function syncBook(book, force) {
+    await ensureToken();
     if (!enabled()) { setStatus('off'); return false; }
     const m = syncedMap();
     const dirty = force || !m[book.id] || String(book.updatedAt || '') > String(m[book.id] || '');
@@ -140,6 +157,7 @@ window.BKN = window.BKN || {};
 
   /** 删书时同步删 gist 文件 */
   async function removeBook(id) {
+    await ensureToken();
     if (!enabled()) return false;
     try {
       const gid = localStorage.getItem(ID_KEY);
@@ -161,6 +179,7 @@ window.BKN = window.BKN || {};
    */
   async function pullAll(onAsk) {
     const out = { pulled: [], pushed: [], conflicts: 0 };
+    await ensureToken();
     if (!enabled()) { setStatus('off'); return out; }
     setStatus('syncing');
     let files;
@@ -228,6 +247,7 @@ window.BKN = window.BKN || {};
 
   /* ---------------- 阅读进度 ---------------- */
   async function pushProgress(progressMap) {
+    await ensureToken();
     if (!enabled()) return false;
     try {
       const gid = await ensureGist();
@@ -241,6 +261,7 @@ window.BKN = window.BKN || {};
     } catch (e) { setStatus('err'); return false; }
   }
   async function pullProgress() {
+    await ensureToken();
     if (!enabled()) return null;
     try {
       const gid = localStorage.getItem(ID_KEY) || await ensureGist();
@@ -261,7 +282,8 @@ window.BKN = window.BKN || {};
     lastPush = Date.now();
     syncBook(book, false);
   }
-  function onBookSaved(book) {
+  async function onBookSaved(book) {
+    await ensureToken();
     if (!enabled() || !B.prefs.get('sync.autoGist', true)) { setStatus('off'); return; }
     if (pushTimer) clearTimeout(pushTimer);
     const delay = Math.max(3, B.prefs.get('sync.gistDelaySec', 8)) * 1000;
@@ -270,6 +292,7 @@ window.BKN = window.BKN || {};
 
   /** 手动「立即同步」：推当前书 + 拉全量 */
   async function syncNow(book, onAsk) {
+    await ensureToken();
     if (!enabled()) { toast('云同步未启用：请先在设置里填写含 gist 权限的令牌', 'err'); return null; }
     setStatus('syncing');
     if (book) await syncBook(book, true);
@@ -295,6 +318,12 @@ window.BKN = window.BKN || {};
         ]
       });
     });
+  }
+
+  // 页面打开就预热一次令牌：群档案登录态 → Cookie 里的 GitHub 令牌，
+  // 之后编辑器保存时 enabled() 直接为 true，自动同步无需用户再点任何东西。
+  if (B.api && B.api.resolveToken) {
+    ensureToken().then(t => { if (t && status === 'idle') setStatus('idle'); }).catch(() => {});
   }
 
   B.gist = { enabled, ensureGist, syncBook, pullAll, pushProgress, pullProgress,

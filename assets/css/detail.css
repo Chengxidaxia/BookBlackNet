@@ -132,3 +132,10 @@
   .dt-sub, .dt-tags { justify-content: center; }
   .dt-actions { justify-content: center; }
 }
+
+/* 收藏按钮已选中态 */
+.dt-actions .btn.is-on {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}

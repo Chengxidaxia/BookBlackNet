@@ -296,6 +296,20 @@
       util.download('bookblacknet-workspace-' + dateStr(new Date()) + '.json', new Blob([txt], { type: 'application/json' }));
       toast('已导出工作区备份', 'ok');
     });
+    // 立即同步：把本机草稿推到云端（Gist），并拉回别的设备上的改动
+    els.btnSync.addEventListener('click', async () => {
+      if (!B.gist) { toast('同步模块未加载', 'err'); return; }
+      const old = els.btnSync.textContent;
+      els.btnSync.disabled = true;
+      els.btnSync.textContent = '同步中…';
+      try {
+        const r = await B.gist.syncNow(null, B.gist.askConflict);
+        if (r) renderShelf();
+      } finally {
+        els.btnSync.disabled = false;
+        els.btnSync.textContent = old;
+      }
+    });
     els.fileHidden.addEventListener('change', async () => {
       const f = els.fileHidden.files && els.fileHidden.files[0];
       if (!f) return;

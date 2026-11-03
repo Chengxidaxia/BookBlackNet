@@ -9,6 +9,7 @@
     { "source": "/api/gh", "destination": "/api/gh" },
     { "source": "/api/gh/:path*", "destination": "/api/gh" },
     { "source": "/api/imgup", "destination": "/api/imgup" },
+    { "source": "/api/shelf", "destination": "/api/shelf" },
 
     { "source": "/proxy/api.github.com/:path*", "destination": "https://api.github.com/:path*" },
     { "source": "/proxy/raw.githubusercontent.com/:path*", "destination": "https://raw.githubusercontent.com/:path*" },
