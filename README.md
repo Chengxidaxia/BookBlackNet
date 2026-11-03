@@ -1,43 +1,97 @@
 # BookBlackNet · 群书阁
 
-长篇小说的写作与阅读空间。写作台把一本书当作**长期工程**来管：多章节、自动存稿、随时接着写；发布时才打包成一个加密的 `.book` 文件，推进书籍仓库。
+长篇小说的写作与阅读空间。写作台把一本书当**长期工程**管：分章节、自动存稿、随时接着写；
+发布时才在浏览器里打包加密，推进书籍仓库。读者打开即读，密钥不下发正文以外的任何东西。
 
-- 站点入口：`index.html`（书库）、`read.html`（阅读）、`write.html`（写作台）
-- 书籍存放：`docs/books/*.book` + `docs/books/index.json`
-- **本仓库只有前端**。后端不在库里（发布走 GitHub Contents API，或你自己的 Cloudflare Worker）。
+- 正式站：<https://book.blacknet.cc.cd>（主站「群档案」的子站：<https://grp.blacknet.cc.cd>）
+- 本仓库**根即站点**，`vercel.json` 声明 `outputDirectory: "."`，无构建步骤
+- 数据真源就在本仓库：`docs/books/`
+- 主仓库里的 `book/` 只是开发副本（已 gitignore），用 `bash scripts/sync-book-repo.sh` 同步
 
 ---
 
-## 目录结构
+## 1. 功能地图
+
+| 页面 | 路径 | 做什么 |
+|---|---|---|
+| 书库首页 | `index` | Hero + 搜索、继续阅读、**最近更新（最多 10 本）**，超出给「查看全部」 |
+| 全部书籍 | `books` | 搜索 / 分类 / 排序 / 每页 24 条，筛选状态写进 URL（`?q=&cat=&sort=&page=`） |
+| 书籍详情 | `book?id=` | 封面、简介、目录、收藏、「下载 .bookp」、继续阅读 |
+| 阅读器 | `read?id=` | 章节抽屉、字号/行距/版心/字体/纸白·米黄·夜间、进度记忆、← → 翻章 |
+| 我的书架 | `shelf` | Tab 1「收藏」+ Tab 2「最近阅读」（章节、进度条、百分比、继续） |
+| 写作台 | `write` | 我的书稿：列表 / 搜索 / 筛选 / 排序 / 新建 / 导入 / 备份 / 删除 |
+| 章节编辑器 | `editor?id=` | 正文编辑（Vditor + 纯文本双模）、章节管理、字数统计、云同步、发布 |
+| 格式转换 | `convert` | `.bookp ⇄ .zip`、`.epub ⇄ .bookp`，四个面板，全部在浏览器本地完成 |
+| 赞助 | `sponsor` | 无偿赞助说明 |
+| 404 | `404` | — |
+
+顶栏（全站统一）：书库 · 写作台 · 我的书架 · 格式转换 · 赞助 · 群档案。
+**≤900px 自动折叠为汉堡抽屉**（`core/nav.js` 生成，不改 HTML 结构）。
+
+---
+
+## 2. 目录结构
 
 ```
-book/
-├─ index.html            书库首页（书架 / 搜索 / 继续阅读）
-├─ read.html             阅读器（目录、排版、进度记忆）
-├─ write.html            写作台（章节管理 + 长文编辑）
-├─ 404.html
-├─ docs/books/
-│  ├─ index.json         书目索引（明文，只含公开摘要）
-│  └─ *.book             书籍密文
+BookBlackNet/
+├─ index.html books.html book.html read.html shelf.html
+├─ write.html editor.html convert.html sponsor.html 404.html
+├─ api/                     Vercel Functions（线上）
+│  ├─ _lib.mjs              req/res 适配
+│  ├─ auth.js    /api/auth    邮箱账号：注册 / 登录 / 会话
+│  ├─ gh.js      /api/gh      群档案 GitHub 登录态（/me、/logout）
+│  ├─ imgup.js   /api/imgup   图片上传转发（pixhost）
+│  ├─ shelf.js   /api/shelf   账号书架（收藏 + 进度）
+│  └─ token.js   /api/token   把 HttpOnly Cookie 里的令牌还给本人
+├─ lib/                     平台无关核心（api / netlify 两套入口共用）
+│  ├─ auth-core.mjs  gh-core.mjs  imgup.mjs
+├─ netlify/functions/       Netlify 版入口（仅本地保留，不参与同步）
 ├─ assets/
-│  ├─ css/  base.css home.css read.css write.css
+│  ├─ css/  base home books detail read shelf write convert sponsor
 │  └─ js/
-│     ├─ config.js       站点/仓库/密钥配置
-│     ├─ home.js  read.js  write.js
+│     ├─ config.js          全站配置 window.BOOK
+│     ├─ home.js books.js detail.js read.js myshelf.js
+│     ├─ write.js editor.js settings.js convert.js epub.js
 │     └─ core/
-│        ├─ util.js      DOM、toast、字数、格式化
-│        ├─ crypto.js    .book 打包 / 解包
-│        ├─ markdown.js  轻量 Markdown 渲染（约 3KB）
-│        ├─ store.js     本地书稿仓库（IndexedDB）
-│        └─ api.js       书库读取 + GitHub 发布
-└─ netlify.toml
+│        ├─ util.js         DOM / toast / 字数 / 时间
+│        ├─ crypto.js       .bookp 打包解包（AES-GCM + gzip）
+│        ├─ inflate.js      纯 JS inflate/gzip（无 DecompressionStream 时兜底）
+│        ├─ api.js          书库读取（三层数据源）+ 发布 + 分块拼装
+│        ├─ store.js        本地书稿仓库（IndexedDB）
+│        ├─ gist.js         草稿 / 进度云同步（secret Gist）
+│        ├─ auth.js         账号（邮箱 + 群档案 GitHub）
+│        ├─ account.js      顶栏账号区 + 登录对话框
+│        ├─ fav.js          收藏与最近阅读（本地 + 账号）
+│        ├─ shelf.js        书架筛选纯函数
+│        ├─ nav.js          移动端导航抽屉
+│        ├─ net.js          同源反代 fetch 封装
+│        ├─ ui.js           弹窗组件（全站不用 alert/prompt）
+│        ├─ markdown.js     轻量 Markdown 渲染
+│        ├─ prefs.js        偏好设置中心
+│        ├─ stats.js        写作统计（今日 / 连续天数 / 累计）
+│        ├─ undo.js         textarea 撤销栈（含 IME 保护）
+│        └─ upload.js       图片上传（双通道）
+├─ docs/books/
+│  ├─ index.json            书目索引（明文，只含公开摘要）
+│  ├─ *.book                **清单**（分块版）或旧版单体密文
+│  └─ *.book.pXXX           分块（每块 ≤ 10 MiB）
+├─ vercel.json  netlify.toml  CNAME  package.json
 ```
 
 ---
 
-## `.book` 文件格式
+## 3. 格式体系
 
-一个 JSON 文件，外层是公开摘要，正文全部是密文。
+仓库、用户、外部工具三者的文件格式是分开的：
+
+| 格式 | 谁用 | 形态 |
+|---|---|---|
+| `.book`（清单）+ `.book.pXXX` | **仓库** | 小 JSON 清单 + 分块正文，单文件 ≤ 10 MiB |
+| `.bookp` | **用户** | 单体加密 JSON，一本书一个文件，可下载 / 导入 / 备份 |
+| `.zip` | 交换 | 清单 + 分块打包，便于手工放进仓库或外部工具处理 |
+| `.epub` | 交换 | EPUB 3，可导入第三方阅读器 |
+
+### 3.1 单体文件（`.bookp` / 旧版 `.book`）
 
 ```jsonc
 {
@@ -49,13 +103,11 @@ book/
     "status": "ongoing",            // ongoing | done
     "visibility": "public",         // public | private
     "cover": { "type": "letter", "from": "#7c3a2e", "to": "#3d1c16", "text": "长" },
-    "chapters": 3, "words": 1244,   // 冗余字段，列表页不下载全文也能显示
+    "chapters": 3, "words": 1244,   // 冗余字段：列表页不下载全文也能显示
     "createdAt": "...", "updatedAt": "..."
   },
   "crypto": {
-    "alg": "AES-GCM",
-    "kdf": "PBKDF2-SHA256",
-    "iter": 310000,
+    "alg": "AES-GCM", "kdf": "PBKDF2-SHA256", "iter": 310000,
     "salt": "base64(16B)",
     "wrap": "site",                 // site = 站点密钥；pass = 作者口令
     "wrapIv": "base64(12B)",
@@ -67,137 +119,228 @@ book/
 }
 ```
 
-**密钥链**
+### 3.2 分块清单（仓库里看到的 `.book`）
+
+```json
+{
+  "format": "bookblacknet.chunks",
+  "v": 1,
+  "parts": ["bk_sample_longnight.book.p001"],
+  "size": 4695,
+  "updatedAt": "2026-11-01T11:04:15.155Z"
+}
+```
+
+- 正文 JSON 按 **UTF-8 字节**切成 ≤ 10 MiB 的片，**不在代理对中间切断**；
+- 加载端先取清单，再顺序取回所有分块拼接（`api.js → fetchBook`）；
+- 读旧版单体 `.book` 完全兼容，两种格式长期共存；
+- 发布时超过 10 MiB 会自动生成清单 + 分块并逐个提交。
+
+### 3.3 格式互转
+
+全部在 `convert` 页、浏览器本地完成，**文件不出本机**：
+
+| 面板 | 说明 |
+|---|---|
+| `.bookp → .zip` | 解包后重新按清单 + 分块切分（与线上发布同一套切分规则） |
+| `.zip → .bookp` | 读清单与分块，按顺序拼回单体文件；支持 store 与 deflate |
+| `.epub → .bookp` | `container.xml → OPF → spine`，逐章 XHTML 转 Markdown 后加密打包 |
+| `.bookp → .epub` | 解密 → Markdown 渲染 → 生成 EPUB 3（mimetype 首位且不压缩、nav、ncx、章节 XHTML） |
+
+ZIP 读写零依赖：写入用 store + 自算 CRC32，读取支持 store 与 deflate
+（浏览器原生 `DecompressionStream`，缺失时用 `core/inflate.js`）。
+
+---
+
+## 4. 加密链路
 
 ```
 secret ──PBKDF2(salt, 310000)──▶ KEK ──AES-GCM(wrapIv)──▶ DEK(32B)
-DEK ──AES-GCM(dataIv)──▶ 密文 ──gunzip?──▶ {"meta":{...},"chapters":[{id,title,content}]}
+DEK ──AES-GCM(dataIv)──▶ 密文 ──gunzip?──▶ {"meta":{…},"chapters":[{id,title,content}]}
 ```
-
-**两种可见性**
 
 | 可见性 | secret 来源 | 读者体验 | 安全边界 |
 |---|---|---|---|
-| `public` | `config.js` 的 `SITE_KEY` | 打开即读 | 密钥随前端下发；防的是「仓库里出现明文」「随手抓取」，不是专业逆向 |
-| `private` | 作者设置的口令 | 输入口令才能打开 | 口令不入库、不上传；31 万次 PBKDF2，强度取决于口令 |
+| `public` | `config.js → SITE_KEY` | 打开即读 | 密钥随前端下发；防的是「仓库里出现明文」「随手抓取」，**不是**专业逆向 |
+| `private` | 作者设的口令 | 输入口令才能打开 | 口令不入库、不上传；31 万次 PBKDF2 |
 
-> 私密书的口令丢失后**无法找回**——这是加密，不是权限。
+> 私密书口令丢失后**无法找回** —— 这是加密，不是权限。
+> 所有书的正文在 GitHub 上都只是密文；书目索引只有标题、作者、简介、字数这类公开摘要。
 
 ---
 
-## 写作台怎么工作
+## 5. 账号与云端
 
-1. **写**：`write.html` 里新建作品 → 分章节写。正文存 IndexedDB，输入停顿 0.7 秒自动落盘，关标签页也会保存。
-2. **管**：章节可增删、上下移动；顶部「作品信息」设书名/笔名/分类/标签/简介/连载状态/私密。
-3. **发**：点「发布」→ 浏览器内完成 gzip + 加密 → 上传 `.book` → 重写 `index.json`。
+### 5.1 两种登录方式
 
-发布通道（`config.js` 的 `PUBLISH_MODE`）：
-
-| 通道 | 需要什么 | 说明 |
+| 方式 | 通道 | 说明 |
 |---|---|---|
-| `github`（默认） | 一个 Fine-grained PAT，`Contents: Read and write` | 浏览器直连 GitHub API，令牌只存 `localStorage`，不经过任何第三方 |
-| `worker` | 自建 CF Worker，实现 `POST /publish` | 令牌留在服务端；**后端代码不在本仓库** |
+| 邮箱账号 | 同源 `/api/auth` | 本站注册；PBKDF2 十万次哈希；令牌存 `localStorage`（`bbn.email.token`），Bearer 调用 |
+| 群档案 GitHub | Cookie `github_token` | 复用主站 OAuth 会话（Domain=`.blacknet.cc.cd`，HttpOnly），登录跳转经 `grp?login-next=` 中转 |
 
-也可以「仅下载 .book」，手动放进 `docs/books/` 并更新 `index.json`。
+未登录也能读书、写稿（存本机），只是不能云同步。顶栏右侧会显示「登录」或头像 + 下拉菜单
+（我的书架 / 我的书稿 / 同步书架 / 设置 / 登出）。
+
+### 5.2 我的书架（`/shelf` + `/api/shelf`）
+
+- 本机：`bbn.fav`（收藏）、`bbn.progress.<id>`（进度）、`bbn.shelf`（最近阅读，最多 24 条）
+- 账号：`GET/POST /api/shelf`，键 `bshelf:<uid>`，只存 **id / 标题 / 封面 / 进度**，不存正文
+- 合并规则：按 id 取 `at` 较新的一份 —— 未登录时收藏的书登录后并进账号，不会丢
+- 身份：邮箱 Bearer 令牌，或 Cookie 里的 GitHub 会话（服务端问 `api.github.com/user`）
+- 未登录时状态行明确写「只保存在本机浏览器」，并提供「登录后可同步」入口
+
+### 5.3 草稿云同步（secret Gist）
+
+- 一个 secret gist，每本书一个文件 `bbn-book-<id>.json`，进度单独 `bbn-progress.json`；
+  只 PATCH 脏文件，删书即删文件
+- 冲突按 `updatedAt` 比对：本地新 → 推；云新且本地干净 → 静默拉；云新且本地脏 → 三选弹窗
+- 令牌解析顺序：单独填的 Gist 令牌 → 发布 PAT → **群档案登录态换来的令牌**（`/api/token` 读 HttpOnly Cookie）
+- 所以用群档案账号登录后，编辑器保存草稿就自动上云，不必再手填令牌
 
 ---
 
-## 阅读器
+## 6. 数据源与发布
 
-- 目录抽屉、上一章/下一章、← → 键翻章
-- 排版：字号 / 行距 / 版心宽度 / 宋黑字体 / 纸白·米黄·夜间
-- 进度按书记忆，首页「继续阅读」直接续上
-- 渲染走自写的轻量 Markdown：标题、粗斜体、删除线、引用、列表、分隔线、链接、图片、代码块
+### 6.1 读
 
----
-
-## 本地开发
-
-WebCrypto 只在安全上下文可用，**必须用 localhost 打开**（`file://` 不行）。
-
-在仓库根执行（`--directory` 指向本目录）：
-
-```bash
-python -m http.server 8123 --directory book
+```
+① 同源 docs/books/… → ② jsDelivr 三节点并发 → ③ raw.githubusercontent
 ```
 
-如果当前就在本目录里，用：
+每层都有超时（同源 5s、其余 8s），失败自动降级；并发竞速是为了避开国内单节点整段超时。
+`<html data-book-source="site|cdn|raw|none">` 标明当前用的哪一层。
+细节见主仓库的 **[CDN.md](https://github.com/Chengxidaxia/GroupBlackNet/blob/main/CDN.md)**。
+
+### 6.2 写
+
+| 通道 | 配置 | 说明 |
+|---|---|---|
+| `github`（默认） | `PUBLISH_MODE: 'github'` | 浏览器直连 GitHub Contents API，PAT 只存本机 |
+| `worker` | `PUBLISH_MODE: 'worker'` + `API_BASE` | 自建 Worker 代提交，令牌留服务端（不在本仓库） |
+| 手动 | — | 「下载 .bookp」后自行放进 `docs/books/` 并改 `index.json` |
+
+发布流程：浏览器内 `JSON → gzip → AES-GCM` → 生成清单与分块 → 逐个 `PUT` →
+重写 `index.json` → `bustCdn()` 换版本戳。整个过程不需要服务端。
+
+---
+
+## 7. 后端接口
+
+| 端点 | 方法 | 作用 | 依赖 |
+|---|---|---|---|
+| `/api/auth` | POST | 注册 / 登录 / 登出 / 会话 | Upstash Redis |
+| `/api/gh` | GET | 群档案登录态（`/me`、`/logout`） | Cookie |
+| `/api/imgup` | POST | 图片上传（转发 pixhost） | — |
+| `/api/shelf` | GET / POST | 账号书架读写 | Upstash Redis |
+| `/api/token` | GET | 把 Cookie 里的 GitHub 令牌还给本人（`no-store`） | Cookie |
+
+> 没有 Redis 变量时：`/api/auth` 返回 503，书架退回纯本地，其余功能不受影响。
+> 图片上传主通道走同源 `/api/imgup`，兜底是 CF `upload.blacknet.cc.cd`（Bearer PAT / Cookie）。
+
+---
+
+## 8. 本地开发
+
+WebCrypto 只在安全上下文可用，**必须用 localhost 或 https 打开**（`file://` 不行）。
 
 ```bash
+# 在主仓库根
+python -m http.server 8123 --directory book
+
+# 或者就在本目录
 python -m http.server 8123
 ```
 
-然后访问 `http://localhost:8123/`。
+访问 <http://localhost:8123/>。
+
+| 事项 | 说明 |
+|---|---|
+| Functions | 本地静态服务器没有 `/api/*`，登录 / 书架 / `/api/token` 会失败并自动降级（不报错、不阻塞阅读） |
+| 发布 | 本地发布需要真 PAT（设置里填），或直接用线上的 `/api/token` 拿登录态令牌 |
+| 验证渲染 | 本机 Edge 无头 + CDP **真实等待**；`--virtual-time-budget` 会加速定时器把 fetch 抢死，造成「渲染失败」的假象 |
+| 测老浏览器 | CDP 注入 `Object.defineProperty(window,'DecompressionStream',{value:undefined})` 即可模拟旧 Safari / 微信内核 |
+| 造测试素材 | Node `zlib.deflateRawSync` 手搓 zip / epub（epub 的 `mimetype` 必须 store） |
 
 ---
 
-## 部署
+## 9. 部署
 
-正式域名：**<https://book.blacknet.cc.cd>**（`assets/js/config.js → SITE_URL`）。
+生产在 **Vercel**，项目直接连本仓库：
 
-### Netlify（推荐）
+| 项 | 值 |
+|---|---|
+| Framework Preset | Other |
+| Build Command | 无 |
+| Output Directory | `.` |
+| 配置 | 仓库根 `vercel.json` |
 
-本目录根即站点根，`netlify.toml` 已经写好（无构建，`publish = "."`）。
-Netlify 新建站点时 **Base directory 填 `book`**（Netlify 只读 base 目录下的 toml），
-然后在 Domain management 里绑 `book.blacknet.cc.cd`，DNS 用 CNAME → `<站点名>.netlify.app`，
-证书签发完成后再开 Force HTTPS。
+环境变量：
 
-Netlify 有个好处：`netlify.toml` 里配了 `/proxy/api.github.com/*` 与
-`/proxy/raw.githubusercontent.com/*`，前端在国内直连 GitHub 不通时会自动走这条同源反代。
+| 变量 | 用途 |
+|---|---|
+| `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | 账号、会话、账号书架 |
 
-### GitHub Pages
+`vercel.json` 里的关键规则：
 
-独立仓库 `Chengxidaxia/BookBlackNet`（根即站点）→ Settings → Pages →
-Custom domain 填 `book.blacknet.cc.cd`。仓库根需要 `CNAME` 文件
-（内容就一行 `book.blacknet.cc.cd`），`scripts/sync-book-repo.sh` 会自动带上；
-`.nojekyll` 同理，脚本也会补。
+- `cleanUrls: true` → 线上是 `/books`、`/shelf`、`/book?id=…`，没有 `.html`
+- `/api/*` 各自 rewrite 到同名 Function
+- `/proxy/<host>/*` 转发到 `api.github.com`、`raw.githubusercontent.com`、`oauth/upload/img/api.blacknet.cc.cd`
+- `/docs/books/*` 强制 `application/octet-stream` + 60 秒缓存，避免被当成 HTML 解析
+- `/assets/js/*` 不缓存（改版立刻生效），`/netlify.toml`、`/README.md`、`/vercel.json` 直接 404
 
-Pages 上没有 `/proxy/` 转发，`net.js` 会收到 404 并**自动降级为直连**，功能不受影响，
-只是少了这一层兜底。
-
-### 放在群档案的子路径下
-
-根项目的 `scripts/netlify-build.sh` 会把 `book/` 一起复制进 `dist/book/`，因此
-`https://grp.blacknet.cc.cd/book/` 仍可访问（保留为备用入口，也可当书籍的同源兜底）。
-页面已带 `canonical` 指向 `book.blacknet.cc.cd`，不会被搜索引擎当成重复内容。
-
-### 书籍与站点分仓（jsDelivr）
-
-读书不强制同源：`assets/js/core/api.js` 按 **同源 → jsDelivr（三节点并发竞速）→ raw.githubusercontent**
-取 `index.json` 与 `.book`，任一成功即返回，每层都有超时保护。
-
-所以站点可以部署在 Netlify，书籍单独放 `BookBlackNet` 仓库，只靠 CDN 读。
-详见仓库根的 **[CDN.md](../CDN.md)**：缓存与 `?v=` 版本戳、jsDelivr 限制、验收命令
-（`node scripts/cdn-urls.mjs --check`）。
-
-本地改完要同步到书籍仓库：`bash scripts/sync-book-repo.sh`（SSH，不弹凭据）。
-
-排查用：`<html data-book-source="site|cdn|raw|none">`。
+Netlify / GitHub Pages 是备用通道：`netlify.toml` 保留（Base directory 填 `book`，无构建），
+Pages 需要根目录 `CNAME`（内容 `book.blacknet.cc.cd`）。两种都可以，但同源最稳的是 Vercel 直连本仓库。
 
 ---
 
-## 配置
+## 10. 兼容与降级
 
-改 `assets/js/config.js` 一处即可：
+| 场景 | 处理 |
+|---|---|
+| 无 `DecompressionStream`（老 Safari <16.4 / 微信内置 / 旧 WebView） | `core/inflate.js` 提供纯 JS inflate + gzip（含多 member），原生优先、缺失或失败回退。**没有它这些设备一本都打不开**（正文是 gzip + AES-GCM） |
+| 无 `CompressionStream` | `crypto.pack` 不压缩直接写，`zip` 字段记 `none`，互转仍自洽 |
+| 无 IndexedDB | 提示浏览器过旧，不落稿 |
+| ≤900px 窄屏 | 汉堡抽屉导航；输入框 16px（避免 iOS 聚焦放大）；`.page` 用 `100dvh` |
+| 没有 `/proxy` 转发 | `net.js` 收到 404 自动降级直连，功能不受影响 |
+| 本地 / 离线 | 书架、书稿全在本地；云同步静默降级为 `off`，不打扰写作 |
+
+---
+
+## 11. 配置（`assets/js/config.js`）
 
 | 键 | 作用 |
 |---|---|
 | `REPO_OWNER` / `REPO_NAME` / `BRANCH` | 书籍仓库 |
-| `BOOKS_DIR` / `INDEX_FILE` | 书籍与索引路径（默认 `docs/books`） |
-| `CDN.hosts` | jsDelivr 节点顺序，前面的失败自动换下一个 |
-| `CDN.base` | 自定义数据源基地址（自建反代 / 对象存储），填了就忽略 `hosts` |
-| `CDN.timeout` / `CDN.siteTimeout` | 单个源超时（毫秒） |
-| `SITE_KEY` | 公开书的主密钥，**换成你自己的随机串** |
-| `PUBLISH_MODE` | `github` 或 `worker` |
-| `API_BASE` | 用 worker 通道时填 Worker 地址 |
-| `SITE_URL` | 正式域名，用于 canonical 与分享链接。换域时改这一处 |
-| `PROXY` | 同源反代：`mode` = `auto`/`always`/`off`，`hosts` 是允许代理的域名（默认 `api.github.com`、`raw.githubusercontent.com`）。注意 `CDN.hosts` 里的 jsDelivr 不在其中 —— CDN 自己就通 CORS |
+| `BOOKS_DIR` / `INDEX_FILE` | 书籍与索引路径 |
+| `CDN.hosts` / `CDN.base` / `CDN.timeout` / `CDN.siteTimeout` | 数据源节点与超时 |
+| `PUBLISH_MODE` / `API_BASE` | 发布通道 |
+| `AUTH_URL` / `AUTH_URL_FALLBACK` | 账号服务（同源优先，CF 兜底） |
+| `PROXY.mode` / `hosts` / `skipOn` | 同源反代 |
+| `SITE_KEY` | 公开书主密钥（**换成自己的随机串**） |
+| `SITE_URL` | 正式域名，用于 canonical 与分享链接 |
 | `CATEGORIES` | 分类列表 |
 | `READER` | 阅读器默认排版 |
 
 ---
 
-## 示例书籍
+## 12. 维护脚本（在主仓库 `scripts/`）
 
-`docs/books/` 里有三本示例（《长夜将明》《旧书店的第七个夏天》《星图之外》），用来验证加密链路和排版。
-不需要时直接删除对应 `.book`，并从 `index.json` 的 `books` 数组里去掉那一条即可。
+| 脚本 | 作用 |
+|---|---|
+| `sync-book-repo.sh` | 本仓库 ← 主仓库 `book/`。页面覆盖、书籍只补不覆盖、索引合并；`DRY=1` 预演、`FORCE_BOOKS=1` 强推 |
+| `book-chunk.mjs` | 单体 `.book` → 清单 + 分块（幂等，`--dry` 预演） |
+| `book-index-merge.mjs` | 合并 `index.json`（远端为基底，只补本地独有） |
+| `cdn-urls.mjs` | 列 / 探测数据源（含分块），`--check`、`--purge` |
+
+> 同步后**必须**核对远端 SHA：`git -C .workbuddy/tmp/book-repo ls-remote origin main`。
+> push 偶发被静默吞掉（exit 0 但远端没变），SHA 变了才算成功。
+
+---
+
+## 13. 已知限制
+
+- 主密钥随前端下发，`public` 书的加密只防「明文入库 + 随手抓取」；
+- 邮箱账号的会话存在 Upstash，未配置时只能本机使用；
+- `.epub → .bookp` 是启发式解析（container → OPF → spine），复杂排版会丢样式，只保留章节结构与文本；
+- 图片走外链（pixhost / img 子域），不随书加密；
+- 移动端顶栏的「开始写作」在 ≤900px 收进抽屉，平板用户要多点一次。
