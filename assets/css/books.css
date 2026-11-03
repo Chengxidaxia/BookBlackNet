@@ -3,7 +3,7 @@
    卡片 / chips / 下拉沿用 home.css，这里只加页头、搜索框与分页。
    ============================================================ */
 
-.lib-wrap { padding: 40px 0 72px; }
+.lib-wrap { padding-top: 40px; padding-bottom: 72px; }
 
 .lib-head {
   display: flex; align-items: flex-end; justify-content: space-between;

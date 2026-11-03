@@ -354,8 +354,13 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 0; }
 .clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
-@media (max-width: 760px) {
+@media (max-width: 900px) {
   .nav-links { display: none; }
+  /* 顶栏主按钮收进抽屉，避免和头像、汉堡挤成一行 */
+  .nav-actions .btn-primary { display: none; }
+}
+
+@media (max-width: 760px) {
   .wrap, .nav-in { padding: 0 16px; }
   .brand-sub { display: none; }
 }
@@ -407,4 +412,124 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 0; }
   .acct-name, .acct-caret { display: none; }
   .acct-btn { padding: 0 4px; }
   .nav-user .nav-login { height: 32px; padding: 0 10px; font-size: 13px; }
+}
+
+/* ============================================================
+   移动端导航抽屉（core/nav.js 生成）
+   ============================================================ */
+.nav-burger {
+  display: none;
+  flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px;
+  width: 40px; height: 36px; margin-left: 2px; padding: 0;
+  border: 1px solid var(--line); border-radius: 9px;
+  background: var(--card); cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color .18s, background .18s;
+}
+.nav-burger:hover { border-color: var(--line-2); }
+.nav-burger span {
+  display: block; width: 16px; height: 1.6px; border-radius: 2px;
+  background: var(--ink-2);
+  transition: transform .2s var(--ease), opacity .14s;
+}
+.nav-burger.x { background: var(--accent-soft); border-color: transparent; }
+.nav-burger.x span { background: var(--accent); }
+.nav-burger.x span:nth-child(1) { transform: translateY(5.6px) rotate(45deg); }
+.nav-burger.x span:nth-child(2) { opacity: 0; }
+.nav-burger.x span:nth-child(3) { transform: translateY(-5.6px) rotate(-45deg); }
+
+.mnav-mask {
+  position: fixed; inset: 0; z-index: 90;
+  background: rgba(33, 28, 22, .38);
+  opacity: 0; pointer-events: none;
+  transition: opacity .22s;
+}
+.mnav-mask.on { opacity: 1; pointer-events: auto; }
+
+.mnav {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 95;
+  width: min(86vw, 320px);
+  display: flex; flex-direction: column;
+  background: var(--card);
+  border-left: 1px solid var(--line);
+  box-shadow: -20px 0 48px rgba(33, 28, 22, .18);
+  transform: translateX(100%);
+  transition: transform .26s var(--ease);
+  padding-top: env(safe-area-inset-top);
+  overscroll-behavior: contain;
+}
+.mnav.open { transform: none; }
+
+.mnav-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 12px 10px 18px;
+  border-bottom: 1px solid var(--line);
+}
+.mnav-title {
+  font-family: var(--serif); font-size: 14px; color: var(--ink-3);
+  letter-spacing: .08em;
+}
+.mnav-close {
+  width: 34px; height: 34px; display: grid; place-items: center;
+  border: 0; border-radius: 8px; background: none;
+  color: var(--ink-3); cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.mnav-close:hover { background: var(--paper-2); color: var(--ink); }
+.mnav-close svg { width: 17px; height: 17px; }
+
+.mnav-body {
+  flex: 1; overflow-y: auto;
+  padding: 10px 0 16px;
+  -webkit-overflow-scrolling: touch;
+}
+.mnav-link {
+  display: flex; align-items: center;
+  margin: 2px 10px; padding: 13px 14px;
+  border-radius: 10px;
+  font-size: 15.5px; color: var(--ink-2);
+  -webkit-tap-highlight-color: transparent;
+}
+.mnav-link:hover, .mnav-link:active { background: var(--paper-2); color: var(--ink); }
+.mnav-link.on { color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+
+.mnav-foot {
+  padding: 12px 14px calc(14px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line);
+}
+.mnav-cta { width: 100%; height: 44px; font-size: 15px; }
+
+body.mnav-open { overflow: hidden; }
+
+/* 移动端：视口高度用 dvh，地址栏收起时不再留白 */
+@supports (height: 100dvh) {
+  .page { min-height: calc(100dvh - var(--nav-h)); }
+}
+
+/* ============================================================
+   移动端细节：触摸目标 / 输入框字号 / 滚动惯性
+   ============================================================ */
+@media (max-width: 900px) {
+  .nav-in { gap: 14px; }
+  .nav-actions { gap: 6px; }
+  /* 必须写在这里：.nav-burger 的基础规则在本块之前，写在上面会被它盖掉 */
+  .nav-burger { display: flex; }
+  /* iOS 下 <16px 的输入框聚焦会自动放大整页 */
+  .input, .select, .textarea,
+  input[type="text"], input[type="search"], input[type="email"],
+  input[type="password"], input[type="number"], input[type="url"] { font-size: 16px; }
+  /* 触屏没有 hover，:hover 高亮会"粘住"，用 active 代替 */
+  .btn:hover, .nav-link:hover { box-shadow: none; }
+}
+
+@media (max-width: 760px) {
+  .btn { height: 40px; }
+  .btn-sm { height: 34px; }
+  .btn-lg { height: 48px; }
+  /* 弹层 / 抽屉加底部安全区 */
+  .modal-panel, .sheet, .dialog { padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+  /* 长内容不要撑破容器 */
+  .md-body table, .preview-body table { display: block; overflow-x: auto; }
+  .md-body pre, .preview-body pre { overflow-x: auto; }
 }

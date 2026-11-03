@@ -5,7 +5,8 @@
    ============================================================ */
 
 .detail-wrap {
-  padding: 40px 0 72px;
+  padding-top: 40px;
+  padding-bottom: 72px;
   min-height: 60vh;
 }
 
@@ -123,9 +124,9 @@
 
 /* -------- 窄屏 -------- */
 @media (max-width: 640px) {
-  .detail-wrap { padding: 24px 0 56px; }
+  .detail-wrap { padding-top: 24px; padding-bottom: 56px; }
   .detail-in { flex-direction: column; gap: 24px; }
-  .dt-cover-wrap { display: flex; justify-content: center; }
+  .dt-cover-wrap { display: flex; justify-content: center; width: 100%; }
   .dt-cover { width: 190px; }
   .dt-cover .bc-letter { font-size: 72px; }
   .dt-title { font-size: 24px; text-align: center; }

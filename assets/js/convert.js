@@ -4,8 +4,9 @@
    · .bookp（单体加密 JSON）→ .zip（清单 .book + 分块 .pXXX）
      分块逻辑与 api.js 发布通道一致（≤10MiB/块，不拆代理对）。
    · .zip → .bookp：读 zip 清单与分块，按顺序拼回单体文件。
-     支持 store 与 deflate 两种压缩方式（后者用浏览器
-     DecompressionStream('deflate-raw')，Chromium 103+ / 现代浏览器）。
+     支持 store 与 deflate 两种压缩方式（deflate 优先用浏览器原生
+     DecompressionStream，缺失时退回 core/inflate.js 的纯 JS 实现，
+     所以老 Safari / 微信内置浏览器也能转换）。
    · 不依赖任何第三方库；文件全程不出本机。
    ============================================================ */
 (function (root) {
@@ -65,6 +66,17 @@
   }
 
   /* ---------------- ZIP 读（store + deflate） ---------------- */
+  // deflate 解压：优先原生 DecompressionStream，缺失时用 core/inflate.js
+  // 的纯 JS 实现（老 Safari、微信/QQ 内置浏览器、旧 WebView 都靠它）。
+  async function deflate(u8) {
+    if (root.inflate && root.inflate.raw) return await root.inflate.raw(u8);
+    if (typeof DecompressionStream !== 'function')
+      throw new Error('当前浏览器既不支持浏览器的解压接口，也没加载内置解压模块（inflate.js）');
+    const ds = new DecompressionStream('deflate-raw');
+    const stream = new Blob([u8]).stream().pipeThrough(ds);
+    return new Uint8Array(await new Response(stream).arrayBuffer());
+  }
+
   async function readZip(buf) {        // → [{name, data:Uint8Array}]
     const u8 = new Uint8Array(buf);
     if (u8.length < 22) throw new Error('不是有效的 zip 文件（体积过小）');
@@ -100,12 +112,7 @@
       if (method === 0) {
         files.push({ name: name, data: new Uint8Array(raw) });
       } else if (method === 8) {
-        if (typeof DecompressionStream !== 'function')
-          throw new Error('浏览器不支持 deflate 解压（需较新的 Chrome/Edge/Firefox）');
-        const ds = new DecompressionStream('deflate-raw');
-        const stream = new Blob([raw]).stream().pipeThrough(ds);
-        const out = await new Response(stream).arrayBuffer();
-        files.push({ name: name, data: new Uint8Array(out) });
+        files.push({ name: name, data: await deflate(raw) });
       } else {
         throw new Error('不支持的压缩方式 ' + method + '：' + name);
       }

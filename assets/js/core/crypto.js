@@ -49,9 +49,13 @@ window.BKN = window.BKN || {};
     } catch (e) { return null; }
   }
   async function gunzip(bytes) {
+    const u8 = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+    // 优先走 B.inflate：它有原生就用原生，没有（老 Safari / 微信内置浏览器）
+    // 就退回内置的纯 JS inflate，保证那些设备也能打开书。
+    if (B.inflate && B.inflate.gzip) return await B.inflate.gzip(u8);
     if (typeof DecompressionStream === 'undefined') throw new Error('当前浏览器不支持解压');
     const ds = new DecompressionStream('gzip');
-    const stream = new Blob([bytes]).stream().pipeThrough(ds);
+    const stream = new Blob([u8]).stream().pipeThrough(ds);
     return new Uint8Array(await new Response(stream).arrayBuffer());
   }
 

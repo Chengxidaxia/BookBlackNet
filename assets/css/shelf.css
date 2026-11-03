@@ -4,7 +4,7 @@
    页头、Tab、收藏卡删除按钮、最近阅读列表。
    ============================================================ */
 
-.sh-wrap { padding: 42px 0 72px; }
+.sh-wrap { padding-top: 42px; padding-bottom: 72px; }
 
 .sh-head {
   display: flex; align-items: flex-end; justify-content: space-between;
