@@ -1,0 +1,154 @@
+/* ============================================================
+   BookBlackNet · sponsor.css
+   无偿赞助页。沿用「纸墨」语言：暖白纸面、墨色字、朱砂标记。
+   视觉首要任务：让「无偿」在第一屏就被看见，不像任何购买页。
+   ============================================================ */
+
+.sp-wrap { max-width: 840px; padding-top: 40px; padding-bottom: 84px; }
+
+/* ---------- 页头 ---------- */
+.sp-head { margin-bottom: 30px; }
+.sp-eyebrow {
+  margin: 0 0 10px; font-size: 11.5px; font-weight: 600;
+  letter-spacing: .22em; text-transform: uppercase; color: var(--accent);
+}
+.sp-title {
+  font-family: var(--serif); font-size: 42px; font-weight: 700;
+  line-height: 1.2; letter-spacing: .02em; color: var(--ink); margin: 0 0 12px;
+}
+.sp-sub { margin: 0; font-size: 16px; line-height: 1.75; color: var(--ink-3); }
+
+/* ---------- 核心声明卡 ---------- */
+.sp-pledge {
+  position: relative; margin: 0 0 34px;
+  padding: 26px 28px 24px;
+  border: 2px solid var(--accent); border-radius: var(--r-lg);
+  background: var(--accent-soft);
+  box-shadow: var(--sh-1);
+}
+.sp-tag {
+  display: inline-block; margin: 0 0 14px; padding: 4px 12px;
+  font-size: 11.5px; font-weight: 700; letter-spacing: .18em;
+  color: #fff; background: var(--accent); border-radius: 999px;
+}
+.sp-pledge-title {
+  font-family: var(--serif); font-size: 27px; font-weight: 700;
+  color: var(--ink); margin: 0 0 12px; letter-spacing: .01em;
+}
+.sp-pledge-lead {
+  margin: 0 0 16px; font-size: 16.5px; line-height: 1.85; color: var(--ink-2);
+}
+.sp-pledge-lead b { color: var(--accent); font-weight: 700; }
+.sp-list { list-style: none; margin: 0; padding: 0; }
+.sp-list li {
+  position: relative; padding: 11px 0 11px 26px;
+  font-size: 15px; line-height: 1.8; color: var(--ink-2);
+  border-top: 1px dashed rgba(156, 58, 44, .28);
+}
+.sp-list li:first-child { border-top: 0; }
+.sp-list li::before {
+  content: "✓"; position: absolute; left: 2px; top: 10px;
+  font-size: 14px; font-weight: 700; color: var(--accent);
+}
+.sp-list b { color: var(--ink); font-weight: 600; }
+
+/* ---------- 正文小标题 / 段落 ---------- */
+.sp-h2 {
+  font-family: var(--serif); font-size: 22px; font-weight: 600;
+  color: var(--ink); margin: 38px 0 14px; padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+.sp-p { margin: 0 0 16px; font-size: 16px; line-height: 1.9; color: var(--ink-2); }
+.sp-p strong { color: var(--ink); }
+.sp-p a, .sp-plain a {
+  color: var(--accent); text-decoration: underline;
+  text-underline-offset: 3px; text-decoration-thickness: 1px;
+}
+.sp-last { color: var(--ink-2); }
+
+/* ---------- 这是 / 这不是 ---------- */
+.sp-vs { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 0 0 8px; }
+.sp-vs-col {
+  padding: 18px 20px 16px;
+  border: 1px solid var(--line); border-radius: var(--r);
+  background: var(--paper-2);
+}
+.sp-vs-col h3 {
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--serif); font-size: 17px; font-weight: 600;
+  color: var(--ink); margin: 0 0 10px;
+}
+.sp-vs-col h3::before {
+  content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ink-4);
+}
+.sp-vs-col ul { list-style: none; margin: 0; padding: 0; }
+.sp-vs-col li {
+  position: relative; padding: 5px 0 5px 15px;
+  font-size: 14.5px; line-height: 1.7; color: var(--ink-2);
+}
+.sp-vs-col li::before { content: "·"; position: absolute; left: 3px; font-weight: 700; }
+.sp-vs-yes { border-color: rgba(156, 58, 44, .3); background: #fff; }
+.sp-vs-yes h3::before { background: var(--accent); }
+.sp-vs-yes li::before { color: var(--accent); }
+
+/* ---------- 赞赏码 ---------- */
+.sp-pay {
+  display: flex; align-items: center; gap: 26px; flex-wrap: wrap;
+  margin: 0 0 10px; padding: 24px;
+  border: 1px solid var(--line); border-radius: var(--r-lg);
+  background: var(--card); box-shadow: var(--sh-1);
+}
+.sp-code {
+  flex: 0 0 auto; width: 260px; height: auto;
+  padding: 8px; border: 1px solid var(--line-2); border-radius: 14px;
+  background: #fff;
+}
+.sp-pay-meta { flex: 1 1 240px; min-width: 220px; }
+.sp-pay-meta h3 {
+  font-family: var(--serif); font-size: 18px; font-weight: 600;
+  color: var(--ink); margin: 0 0 10px;
+}
+.sp-pay-meta p { margin: 0 0 10px; font-size: 15px; line-height: 1.8; color: var(--ink-2); }
+.sp-tip { font-size: 13.5px; line-height: 1.75; color: var(--ink-3); }
+
+/* ---------- 开销说明卡 ---------- */
+.sp-card {
+  margin: 0 0 16px; padding: 20px 22px;
+  border: 1px solid var(--line); border-radius: var(--r);
+  background: var(--paper-2);
+}
+.sp-kv { list-style: none; margin: 0; padding: 0; }
+.sp-kv li {
+  display: flex; gap: 14px; flex-wrap: wrap;
+  padding: 9px 0; font-size: 15px; line-height: 1.7;
+  border-bottom: 1px dashed var(--line-2);
+}
+.sp-kv li:last-child { border-bottom: 0; }
+.sp-kv b { min-width: 92px; font-weight: 600; color: var(--ink); }
+.sp-kv span { flex: 1 1 220px; color: var(--ink-2); }
+
+/* ---------- 普通列表 ---------- */
+/* base.css 重置了 li 的 marker，这里显式恢复成朱砂圆点 */
+.sp-plain { margin: 0 0 16px; padding-left: 22px; list-style: disc; }
+.sp-plain li { margin: 8px 0; padding-left: 2px; font-size: 15.5px; line-height: 1.85; color: var(--ink-2); list-style: disc; }
+.sp-plain li::marker { color: var(--accent); font-size: .9em; }
+.sp-plain strong { color: var(--ink); }
+
+/* ---------- 返回 ---------- */
+.sp-back { margin: 40px 0 0; font-size: 14px; }
+.sp-back a { color: var(--ink-3); text-decoration: none; transition: color .2s; }
+.sp-back a:hover { color: var(--accent); }
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 760px) {
+  .sp-wrap { padding-top: 26px; padding-bottom: 60px; }
+  .sp-title { font-size: 32px; }
+  .sp-sub { font-size: 15px; }
+  .sp-pledge { padding: 20px 18px 18px; }
+  .sp-pledge-title { font-size: 22px; }
+  .sp-vs { grid-template-columns: 1fr; }
+  .sp-pay { padding: 18px; gap: 18px; justify-content: center; }
+  .sp-code { width: min(260px, 100%); }
+  .sp-h2 { font-size: 20px; margin-top: 30px; }
+  .sp-kv b { min-width: 100%; }
+}
