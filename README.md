@@ -45,7 +45,7 @@ BookBlackNet/
 │  └─ token.js   /api/token   把 HttpOnly Cookie 里的令牌还给本人
 ├─ lib/                     平台无关核心（api / netlify 两套入口共用）
 │  ├─ auth-core.mjs  gh-core.mjs  imgup.mjs
-├─ netlify/functions/       Netlify 版入口（仅本地保留，不参与同步）
+├─ netlify/functions/       Netlify 版入口（只在主仓库的开发副本里，不同步）
 ├─ assets/
 │  ├─ css/  base home books detail read shelf write convert sponsor
 │  └─ js/
@@ -75,7 +75,10 @@ BookBlackNet/
 │  ├─ index.json            书目索引（明文，只含公开摘要）
 │  ├─ *.book                **清单**（分块版）或旧版单体密文
 │  └─ *.book.pXXX           分块（每块 ≤ 10 MiB）
-├─ vercel.json  netlify.toml  CNAME  package.json
+├─ vercel.json              Vercel 配置（cleanUrls / api / proxy / 缓存头）
+├─ CNAME                    book.blacknet.cc.cd（GitHub Pages 备用）
+├─ package.json             仅声明 type: module
+└─ .nojekyll
 ```
 
 ---
@@ -288,8 +291,13 @@ python -m http.server 8123
 - `/docs/books/*` 强制 `application/octet-stream` + 60 秒缓存，避免被当成 HTML 解析
 - `/assets/js/*` 不缓存（改版立刻生效），`/netlify.toml`、`/README.md`、`/vercel.json` 直接 404
 
-Netlify / GitHub Pages 是备用通道：`netlify.toml` 保留（Base directory 填 `book`，无构建），
-Pages 需要根目录 `CNAME`（内容 `book.blacknet.cc.cd`）。两种都可以，但同源最稳的是 Vercel 直连本仓库。
+Netlify / GitHub Pages 是备用通道：
+
+- Pages：直接切本仓库，根目录已有 `CNAME`（`book.blacknet.cc.cd`），无需额外配置；
+- Netlify：配置文件是主仓库里的 `book/netlify.toml`（**不随本仓库同步**），
+  用的时候从主仓库取，Base directory 填 `book`、无构建、`publish = "."`。
+
+三种都能跑，但同源最稳的是 Vercel 直连本仓库 —— 发布完刷新即见，不依赖缓存。
 
 ---
 
