@@ -4,12 +4,15 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
-    { "source": "/api/auth", "destination": "/api/auth" },
-    { "source": "/api/auth/:path*", "destination": "/api/auth" },
     { "source": "/api/gh", "destination": "/api/gh" },
     { "source": "/api/gh/:path*", "destination": "/api/gh" },
     { "source": "/api/imgup", "destination": "/api/imgup" },
     { "source": "/api/shelf", "destination": "/api/shelf" },
+    { "source": "/api/content", "destination": "/api/content" },
+    { "source": "/api/profile", "destination": "/api/profile" },
+    { "source": "/api/works", "destination": "/api/works" },
+    { "source": "/api/collections", "destination": "/api/collections" },
+    { "source": "/api/publish", "destination": "/api/publish" },
 
     { "source": "/proxy/api.github.com/:path*", "destination": "https://api.github.com/:path*" },
     { "source": "/proxy/raw.githubusercontent.com/:path*", "destination": "https://raw.githubusercontent.com/:path*" },

@@ -374,12 +374,81 @@ window.BKN = window.BKN || {};
    * @returns {Promise<{mode:string, sha?:string, url?:string}>}
    */
   async function publish(packed, meta) {
-    const mode = auth.mode();
-    const r = mode === 'worker'
-      ? await publishViaWorker(packed, meta)
-      : await publishViaGitHub(packed, meta);
+    // ① 服务端代写优先：用户不需要仓库写权限，只要登录了 GitHub 账号。
+    //    服务端拿 BOT_GH_TOKEN 提交，并把 account 写成当前登录名。
+    // ② 服务端不可用（本地预览没 Function / 后端 500）→ 回退用户令牌直连。
+    //    401/403/400 是明确拒绝，不再兜底，否则会盖掉真实原因。
+    let r;
+    try {
+      r = await publishViaServer(packed, meta);
+    } catch (e) {
+      if (e && (e.status === 400 || e.status === 401 || e.status === 403 || e.status === 413)) throw e;
+      r = await publishViaGitHub(packed, meta);
+    }
     bustCdn();          // 发布成功：本会话立刻读新文件，不吃 CDN 旧缓存
     return r;
+  }
+
+  /* ---------------- 服务端代写（任意 GitHub 登录用户） ----------------
+     Vercel Function 请求体上限 4.5MB，所以按字符切片后逐片 POST，
+     最后再发一次 final 写清单 + 索引。切片尺寸与仓库分块无关：
+     仓库文件仍是 10MiB 一块，这里只是「上传用」的传输片。 */
+  const SERVER_PART_CHARS = 600000;   // 中文约 1.8MB，留足 base64 与 JSON 余量
+
+  function splitForServer(str, max) {
+    const out = [];
+    let start = 0;
+    while (start < str.length) {
+      let end = Math.min(start + max, str.length);
+      if (end < str.length) {
+        const c = str.charCodeAt(end - 1);
+        if (c >= 0xD800 && c <= 0xDBFF) end -= 1;   // 不拆代理对
+      }
+      out.push(str.slice(start, end));
+      start = end;
+    }
+    return out.length ? out : [''];
+  }
+
+  async function serverPost(body) {
+    const headers = { 'Content-Type': 'application/json' };
+    const t = (B.auth && B.auth.emailToken) ? B.auth.emailToken() : '';
+    if (t) headers.Authorization = 'Bearer ' + t;
+    const res = await net.fetch('/api/publish', {
+      method: 'POST',
+      credentials: 'include',
+      headers: headers,
+      body: JSON.stringify(body)
+    });
+    let j = {};
+    try { j = await res.json(); } catch (e) { j = {}; }
+    if (!res.ok || (j && j.ok === false)) {
+      const err = new Error((j && j.error) || ('发布失败（HTTP ' + res.status + '）'));
+      err.status = res.status;
+      throw err;
+    }
+    return j;
+  }
+
+  async function publishViaServer(packed, meta) {
+    const parts = splitForServer(packed.json, SERVER_PART_CHARS);
+    for (let i = 0; i < parts.length; i++) {
+      await serverPost({ file: packed.fileName, seq: i + 1, total: parts.length, text: parts[i] });
+    }
+    const entry = B.crypto.summaryOf(Object.assign({}, meta, {
+      chapters: meta.chapters,
+      words: meta.words,
+      updatedAt: new Date().toISOString()
+    }));
+    entry.account = meta.account || '';
+    const j = await serverPost({
+      file: packed.fileName,
+      final: 1,
+      total: parts.length,
+      size: utf8Len(packed.json),
+      entry: entry
+    });
+    return { mode: 'server', url: bookPath(meta.id), parts: j.parts || parts.length, account: j.account };
   }
 
   async function publishViaGitHub(packed, meta) {

@@ -16,6 +16,8 @@
 |---|---|---|
 | 书库首页 | `index` | Hero + 搜索、继续阅读、**最近更新（最多 10 本）**，超出给「查看全部」 |
 | 全部书籍 | `books` | 搜索 / 分类 / 排序 / 每页 24 条，筛选状态写进 URL（`?q=&cat=&sort=&page=`） |
+| 作品集 | `collections` | 策展清单：名称 + 描述 + 若干作品；登录后可建/改/删，发布进书籍仓库 |
+| 作品管理 | `works` | 登录后统一管理：已发布作品 / 云端草稿 / 我的作品集，跨设备继续写 |
 | 书籍详情 | `book?id=` | 封面、简介、目录、收藏、「下载 .bookp」、继续阅读 |
 | 阅读器 | `read?id=` | 章节抽屉、字号/行距/版心/字体/纸白·米黄·夜间、进度记忆、← → 翻章 |
 | 我的书架 | `shelf` | Tab 1「收藏」+ Tab 2「最近阅读」（章节、进度条、百分比、继续） |
@@ -36,15 +38,22 @@
 BookBlackNet/
 ├─ index.html books.html book.html read.html shelf.html
 ├─ write.html editor.html convert.html sponsor.html 404.html
+├─ collections.html works.html    作品集 / 作品管理
 ├─ api/                     Vercel Functions（线上）
 │  ├─ _lib.mjs              req/res 适配
 │  ├─ auth.js    /api/auth    邮箱账号：注册 / 登录 / 会话
 │  ├─ gh.js      /api/gh      群档案 GitHub 登录态（/me、/logout）
 │  ├─ imgup.js   /api/imgup   图片上传转发（pixhost）
 │  ├─ shelf.js   /api/shelf   账号书架（收藏 + 进度）
+│  ├─ works.js   /api/works   书稿云同步（分块存 Upstash）
+│  ├─ collections.js /api/collections  作品集：服务端代写进仓库
+│  ├─ publish.js /api/publish 作品发布：服务端代写（BOT_GH_TOKEN）
+│  ├─ content.js /api/content 分类与公告：读 Global Config
 │  └─ token.js   /api/token   把 HttpOnly Cookie 里的令牌还给本人
 ├─ lib/                     平台无关核心（api / netlify 两套入口共用）
 │  ├─ auth-core.mjs  gh-core.mjs  imgup.mjs
+│  ├─ cloud.mjs               Upstash / 身份解析 / CORS / 响应工具
+│  └─ gh-publish.mjs          GitHub Contents 读写、清单与索引合并
 ├─ netlify/functions/       Netlify 版入口（只在主仓库的开发副本里，不同步）
 ├─ assets/
 │  ├─ css/  base home books detail read shelf write convert sponsor
@@ -200,6 +209,20 @@ DEK ──AES-GCM(dataIv)──▶ 密文 ──gunzip?──▶ {"meta":{…},"
 - 令牌解析顺序：单独填的 Gist 令牌 → 发布 PAT → **群档案登录态换来的令牌**（`/api/token` 读 HttpOnly Cookie）
 - 所以用群档案账号登录后，编辑器保存草稿就自动上云，不必再手填令牌
 
+### 5.4 书稿云端（换设备接着写）
+
+Gist 仍是主通道，账号云端是**备份**（不需要用户自己配令牌）：
+
+| 项 | 说明 |
+|---|---|
+| 存储 | Upstash `bu:<uid>:books`（书目索引）+ `bu:<uid>:b:<id>:<n>`（正文分块，每块 ≤ 12 万字符） |
+| 写入 | 编辑器本地保存后节流 30 秒推一次，失败静默；单本超过约 8.6MB 会拒绝并提示改用「备份」导出 |
+| 读取 | 打开 `editor?id=` 时**本机没有草稿才会回拉**，回拉后先写 IndexedDB 再进编辑器 |
+| 归属 | key 前缀就是 `email:…` / `gh:…` —— 别人的书在物理上读不到，不靠前端判断 |
+| 取稿顺序 | 本机 IndexedDB → 账号云端 → 仓库里的 `.book` 密文解密回灌（作品管理页「继续写」按此顺序） |
+
+云端书稿是**明文**存储（与 Gist 同级），适合草稿而不适合当保险箱；正文真正的密文只在仓库里的 `.book`。
+
 ---
 
 ## 6. 数据源与发布
@@ -218,12 +241,20 @@ DEK ──AES-GCM(dataIv)──▶ 密文 ──gunzip?──▶ {"meta":{…},"
 
 | 通道 | 配置 | 说明 |
 |---|---|---|
-| `github`（默认） | `PUBLISH_MODE: 'github'` | 浏览器直连 GitHub Contents API，PAT 只存本机 |
-| `worker` | `PUBLISH_MODE: 'worker'` + `API_BASE` | 自建 Worker 代提交，令牌留服务端（不在本仓库） |
+| `server`（默认优先） | 无 | 浏览器按 ≤2MiB 分片 POST `/api/publish`，服务端持 `BOT_GH_TOKEN` 提交。**任何 GitHub 登录用户都能发**，account 由服务端写入 |
+| `github` | `PUBLISH_MODE: 'github'` | 浏览器直连 GitHub Contents API，PAT 只存本机。服务端不可用时自动回退到这里，但**只有仓库协作者能成功**（否则 403） |
+| `worker` | `PUBLISH_MODE: 'worker'` + `API_BASE` | 旧的自建 Worker 通道，保留兼容 |
 | 手动 | — | 「下载 .bookp」后自行放进 `docs/books/` 并改 `index.json` |
 
-发布流程：浏览器内 `JSON → gzip → AES-GCM` → 生成清单与分块 → 逐个 `PUT` →
-重写 `index.json` → `bustCdn()` 换版本戳。整个过程不需要服务端。
+发布流程（两条路，产物格式完全一致，可混用）：
+
+- **服务端代写（默认）**：浏览器 `JSON → gzip → AES-GCM` → 按 ≤2MiB 分片 POST `/api/publish`
+  → 服务端逐片 `PUT` → 写清单（原子切换）→ 清旧分片 → 合并 `index.json` → `bustCdn()`。
+  用户不需要仓库权限，`account` 由服务端写入。
+- **浏览器直连（回退）**：同样的加密与分块，但由浏览器自己 `PUT`，需要本机 PAT 或该仓库写权限。
+
+> 为什么默认走服务端：GitHub Contents API 的写权限只属于仓库协作者。浏览器直连意味着
+> 「只有你能发」；要让任何登录用户都能发，只能由服务端持一把有权限的令牌代提交。
 
 ---
 
@@ -235,6 +266,10 @@ DEK ──AES-GCM(dataIv)──▶ 密文 ──gunzip?──▶ {"meta":{…},"
 | `/api/gh` | GET | 群档案登录态（`/me`、`/logout`） | Cookie |
 | `/api/imgup` | POST | 图片上传（转发 pixhost） | — |
 | `/api/shelf` | GET / POST | 账号书架读写 | Upstash Redis |
+| `/api/works` | GET / POST / DELETE | 账号书稿云同步（分块） | Upstash Redis |
+| `/api/collections` | POST / DELETE | 作品集发布与删除（写书籍仓库） | GitHub + `BOT_GH_TOKEN` |
+| `/api/publish` | POST | 作品发布代写（分片 → 清单 → 索引） | GitHub + `BOT_GH_TOKEN` |
+| `/api/content` | GET | 分类与公告（与主站同一份） | `GLOBAL_CONFIG` |
 | `/api/token` | GET | 把 Cookie 里的 GitHub 令牌还给本人（`no-store`） | Cookie |
 
 > 没有 Redis 变量时：`/api/auth` 返回 503，书架退回纯本地，其余功能不受影响。
@@ -281,7 +316,10 @@ python -m http.server 8123
 
 | 变量 | 用途 |
 |---|---|
-| `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | 账号、会话、账号书架 |
+| `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | 账号、会话、账号书架、书稿云同步 |
+| `BOT_GH_TOKEN` | 对书籍仓库有 `contents:write` 的令牌，服务端代写发布用。不配则回退用户令牌，此时只有仓库协作者能发 |
+| `GLOBAL_CONFIG` | Global Config 连接串（与 `vercel-proxy` 同一个服务），读作品分类与公告 |
+| `BOOKS_REPO` / `BOOKS_BRANCH` / `BOOKS_DIR` / `COLLECTIONS_DIR` | 可选，默认 `Chengxidaxia/BookBlackNet` / `main` / `docs/books` / `docs/collections` |
 
 `vercel.json` 里的关键规则：
 
@@ -349,6 +387,9 @@ Netlify / GitHub Pages 是备用通道：
 
 - 主密钥随前端下发，`public` 书的加密只防「明文入库 + 随手抓取」；
 - 邮箱账号的会话存在 Upstash，未配置时只能本机使用；
+- **发布与作品集只对 GitHub 账号开放**：邮箱账号能写草稿、存书架，但不能发布（发布要往仓库写文件）；
+- 未配置 `BOT_GH_TOKEN` 时发布回退到浏览器直连，此时**只有仓库协作者能成功**（其他账号 403）；
+- 云端草稿（`/api/works`）是**明文**存储，与 Gist 同级；作品集也是明文 JSON（只有名称、描述、作品编号，不含正文）；
 - `.epub → .bookp` 是启发式解析（container → OPF → spine），复杂排版会丢样式，只保留章节结构与文本；
 - 图片走外链（pixhost / img 子域），不随书加密；
 - 移动端顶栏的「开始写作」在 ≤900px 收进抽屉，平板用户要多点一次。

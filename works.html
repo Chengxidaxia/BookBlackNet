@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>作品管理 · BookBlackNet</title>
+<link rel="canonical" href="https://book.blacknet.cc.cd/works.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="群书阁">
+<meta property="og:title" content="作品管理 · BookBlackNet">
+<meta property="og:url" content="https://book.blacknet.cc.cd/works.html">
+<meta name="description" content="管理你发布的作品、云端草稿与作品集：继续写、改资料、下架、换设备恢复。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%239c3a2c'/%3E%3Ctext x='16' y='23' font-size='19' text-anchor='middle' fill='%23fff' font-family='serif'%3E书%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/base.css">
+<link rel="stylesheet" href="assets/css/manage.css">
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-in">
+    <a class="brand" href="index.html">
+      <span class="brand-mark">书</span>
+      <span class="brand-txt">
+        <span class="brand-name">群书阁</span>
+        <span class="brand-sub">BookBlackNet</span>
+      </span>
+    </a>
+    <nav class="nav-links">
+      <a class="nav-link" href="index.html">书库</a>
+      <a class="nav-link" href="collections.html">作品集</a>
+      <a class="nav-link" href="write.html">写作台</a>
+      <a class="nav-link" href="shelf.html">我的书架</a>
+      <a class="nav-link" href="convert.html">格式转换</a>
+      <a class="nav-link" href="sponsor.html">赞助</a>
+      <a class="nav-link" href="https://grp.blacknet.cc.cd/" title="群档案 · 主站">群档案</a>
+    </nav>
+    <div class="nav-actions"></div>
+  </div>
+</header>
+
+<main class="page">
+  <section class="wrap mgr">
+    <div class="mgr-head">
+      <h1 class="mgr-title">作品管理</h1>
+      <p class="muted small mgr-sub">
+        这里统一管三样东西：<strong>已发布的作品</strong>、<strong>账号里的云端草稿</strong>、<strong>你建的作品集</strong>。
+        已发布的作品在任何设备登录后都能继续改 —— 优先用本机草稿，其次是账号云端，最后才从仓库把密文解回来。
+      </p>
+    </div>
+
+    <div id="mgr-gate" class="mgr-gate hidden">
+      <h2>登录后查看</h2>
+      <p class="muted small">作品管理需要身份：发布的归属记在账号上，换设备才能把稿子找回来。</p>
+      <div class="row gap-8">
+        <button id="gate-login" class="btn btn-primary">邮箱账号登录</button>
+        <button id="gate-gh" class="btn">用群档案账号登录</button>
+      </div>
+    </div>
+
+    <div id="mgr-body" class="hidden">
+      <div class="mgr-stat" id="mgr-stat"></div>
+
+      <h2 class="mgr-h2">已发布 <span class="mgr-count" id="cnt-pub">0</span></h2>
+      <p class="muted small mgr-note" id="note-pub"></p>
+      <div id="list-pub" class="mgr-grid"></div>
+
+      <h2 class="mgr-h2">云端草稿 <span class="mgr-count" id="cnt-draft">0</span></h2>
+      <p class="muted small mgr-note">存在账号里的书稿副本，用于换设备接着写；Gist 同步仍是主通道，这里的副本每 30 秒最多更新一次。</p>
+      <div id="list-draft" class="mgr-grid"></div>
+
+      <h2 class="mgr-h2">我的作品集 <span class="mgr-count" id="cnt-col">0</span></h2>
+      <div class="row gap-8 mgr-colact">
+        <a class="btn btn-sm" href="collections.html">去作品集页新建</a>
+      </div>
+      <div id="list-col" class="mgr-grid"></div>
+    </div>
+  </section>
+</main>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/core/util.js"></script>
+<script src="assets/js/core/inflate.js"></script>
+<script src="assets/js/core/ui.js"></script>
+<script src="assets/js/core/crypto.js"></script>
+<script src="assets/js/core/markdown.js"></script>
+<script src="assets/js/core/store.js"></script>
+<script src="assets/js/core/net.js"></script>
+<script src="assets/js/core/api.js"></script>
+<script src="assets/js/core/auth.js"></script>
+<script src="assets/js/core/cloud.js"></script>
+<script src="assets/js/core/fav.js"></script>
+<script src="assets/js/core/account.js"></script>
+<script src="assets/js/core/nav.js"></script>
+<script src="assets/js/works.js"></script>
+</body>
+</html>

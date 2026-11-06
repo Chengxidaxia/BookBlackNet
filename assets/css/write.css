@@ -366,3 +366,32 @@ body.gate-locked > :not(.login-gate) { filter: blur(6px); pointer-events: none; 
 }
 .login-gate .gate-form .row { flex-wrap: wrap; }
 .login-gate .gate-form .label { color: var(--ink-3); font-size: 12px; }
+
+/* ---------------- Vditor（4.0.1，内置） ---------------- */
+.vd-host {
+  flex: 1 1 auto; min-height: 0; width: 100%; max-width: 860px;
+  margin: 0 auto; display: flex; flex-direction: column;
+  padding: 4px 0 40px;
+}
+.vd-host .vditor {
+  flex: 1 1 auto; min-height: 0; border: 0; border-radius: 0; background: transparent;
+}
+.vd-host .vditor-reset {
+  font-family: var(--serif); font-size: 17px; line-height: 1.95;
+  color: var(--ink); letter-spacing: .01em; padding: 0 0 60px;
+}
+.vd-host .vditor-toolbar {
+  border: 0; border-bottom: 1px solid var(--line); background: transparent;
+  padding: 2px 0 6px; margin-bottom: 10px;
+}
+.vd-host .vditor-toolbar__item button { color: var(--ink-3); }
+.vd-host .vditor-toolbar__item button:hover { color: var(--ink); background: var(--wash); }
+.vd-host .vditor-ir pre.vditor-reset { background: transparent; }
+.vd-host .vditor-ir .vditor-reset:focus { outline: none; }
+body.focus .vd-host { max-width: 720px; }
+body.focus .vd-host .vditor-reset { font-size: 18.5px; line-height: 2.05; }
+body.focus .vd-host .vditor-toolbar { display: none; }
+@media (max-width: 900px) {
+  .vd-host { padding: 0 0 40px; }
+  .vd-host .vditor-reset { font-size: 16px; }
+}

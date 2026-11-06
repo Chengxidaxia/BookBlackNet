@@ -95,7 +95,9 @@ window.BKN = window.BKN || {};
       el('div.dt-body',
         el('h1.dt-title', { text: entry.title || '未命名作品' }),
         el('div.dt-sub',
-          el('span', { text: entry.author || '佚名' }),
+          (entry.account
+            ? el('a', { href: 'author.html?u=' + encodeURIComponent(entry.account), text: entry.author || entry.account, style: { color: 'inherit', textDecoration: 'underline', textUnderlineOffset: '3px' } })
+            : el('span', { text: entry.author || '佚名' })),
           el('span.sep', { text: '·' }),
           el('span.dt-status', { text: statusTxt }),
           entry.category ? [el('span.sep', { text: '·' }), el('span', { text: entry.category })] : null

@@ -265,6 +265,7 @@ window.BKN = window.BKN || {};
       cover: coverOf(m),
       chapters: m.chapters || 0,
       words: m.words || 0,
+      account: m.account || '',          // 发布者登录名（作品管理按它判归属）
       createdAt: m.createdAt,
       updatedAt: m.updatedAt
     };

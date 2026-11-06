@@ -1,0 +1,225 @@
+/* ============================================================
+   collections.css — 作品集页（collections.html）
+   只写本页新增的类；版式基线来自 base.css。
+   注意：不要用 padding 简写覆盖 .wrap 的左右内边距。
+   ============================================================ */
+
+.cl {
+  padding-top: 34px;
+  padding-bottom: 76px;
+}
+
+/* ---------- 头部 ---------- */
+.cl-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 26px;
+  flex-wrap: wrap;
+}
+.cl-head-txt { max-width: 720px; }
+.cl-title {
+  font-family: var(--serif);
+  font-size: 26px;
+  letter-spacing: .02em;
+  margin: 0 0 8px;
+}
+.cl-sub { margin: 0; line-height: 1.8; }
+
+/* ---------- 列表 ---------- */
+.cl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.cl-card {
+  display: flex;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--card);
+  box-shadow: var(--sh-1);
+  cursor: pointer;
+  transition: transform .18s var(--ease), box-shadow .18s var(--ease), border-color .18s;
+}
+.cl-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sh-2);
+  border-color: var(--line-2);
+}
+
+.cl-cover {
+  flex: 0 0 auto;
+  width: 64px;
+  height: 84px;
+  border-radius: 8px;
+  background: linear-gradient(150deg, #7c2b20, #3d1c16);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  user-select: none;
+}
+.cl-cover-t { font-family: var(--serif); font-size: 24px; line-height: 1; }
+.cl-cover-n { font-size: 10px; opacity: .78; }
+
+.cl-main { min-width: 0; flex: 1; }
+.cl-tline { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.cl-t {
+  font-family: var(--serif);
+  font-size: 16px;
+  margin: 0;
+  line-height: 1.4;
+}
+.cl-tag {
+  font-size: 11px;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: 20px;
+  padding: 0 7px;
+  line-height: 17px;
+}
+.cl-d {
+  font-size: 12.5px;
+  color: var(--ink-3);
+  line-height: 1.65;
+  margin: 7px 0 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.cl-meta { font-size: 11.5px; color: var(--ink-4); margin-top: 8px; }
+
+/* ---------- 空态 ---------- */
+.cl-empty {
+  grid-column: 1 / -1;
+  border: 1px dashed var(--line-2);
+  border-radius: var(--r-lg);
+  background: var(--paper-2);
+  padding: 40px 24px;
+  text-align: center;
+}
+.cl-empty-t { font-family: var(--serif); font-size: 17px; margin-bottom: 8px; color: var(--ink-2); }
+.cl-empty-d { font-size: 12.5px; color: var(--ink-3); line-height: 1.8; margin-bottom: 14px; max-width: 520px; margin-left: auto; margin-right: auto; }
+.cl-empty-d:last-child { margin-bottom: 0; }
+
+.cl-loading { color: var(--ink-3); font-size: 13px; padding: 30px 0; }
+
+/* ---------- 详情 ---------- */
+.cl-dhead {
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+}
+.cl-dhead-main { max-width: 760px; }
+.cl-dmeta { font-size: 12px; color: var(--ink-3); margin-top: 6px; }
+.cl-desc {
+  font-size: 14px;
+  line-height: 1.85;
+  color: var(--ink-2);
+  margin: 14px 0 0;
+  white-space: pre-wrap;
+}
+.cl-dacts { flex: 0 0 auto; }
+
+.cl-books {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 16px;
+}
+.cl-book {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--card);
+  padding: 10px;
+  transition: transform .18s var(--ease), box-shadow .18s var(--ease);
+}
+.cl-book:hover { transform: translateY(-2px); box-shadow: var(--sh-2); }
+
+.cl-cover-mini {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: 6px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-family: var(--serif);
+  font-size: 26px;
+  background: var(--paper-3);
+}
+.cl-cover-mini img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cl-cover-mini.sm { width: 30px; height: 40px; aspect-ratio: auto; font-size: 14px; border-radius: 4px; flex: 0 0 auto; }
+
+.cl-book-t {
+  font-family: var(--serif);
+  font-size: 13.5px;
+  margin-top: 10px;
+  line-height: 1.45;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.cl-book-meta { font-size: 11.5px; color: var(--ink-3); margin-top: 4px; }
+.cl-book-miss { border-style: dashed; background: var(--paper-2); }
+
+/* ---------- 选作品 ---------- */
+.cl-pick {
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  max-height: 260px;
+  overflow: auto;
+  padding: 6px;
+  background: var(--paper);
+}
+.cl-pick-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 8px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.cl-pick-row:hover { background: var(--paper-2); }
+.cl-pick-row.on { background: var(--accent-soft); }
+.cl-pick-row input { accent-color: var(--accent); flex: 0 0 auto; }
+.cl-pick-t {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--serif);
+}
+.cl-pick-a { font-size: 11.5px; color: var(--ink-3); flex: 0 0 auto; }
+
+/* ---------- 窄屏 ---------- */
+@media (max-width: 900px) {
+  .cl { padding-top: 24px; padding-bottom: 58px; }
+  .cl-title { font-size: 22px; }
+  .cl-grid { grid-template-columns: 1fr; }
+  .cl-head { align-items: flex-start; }
+}
+
+@media (max-width: 560px) {
+  .cl-card { padding: 13px; gap: 11px; }
+  .cl-cover { width: 52px; height: 70px; }
+  .cl-books { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+}

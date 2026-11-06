@@ -1,0 +1,166 @@
+/* ============================================================
+   manage.css — 作品管理页（works.html）
+   只写本页新增的东西；版式基线（.wrap / .btn / .row）来自 base.css。
+   注意：千万不要用 padding 简写去覆盖 .wrap 的左右内边距。
+   ============================================================ */
+
+.mgr {
+  padding-top: 34px;
+  padding-bottom: 72px;
+}
+
+.mgr-head { margin-bottom: 22px; }
+
+.mgr-title {
+  font-family: var(--serif);
+  font-size: 26px;
+  letter-spacing: .02em;
+  margin: 0 0 8px;
+}
+
+.mgr-sub { line-height: 1.8; max-width: 760px; margin: 0; }
+.mgr-sub strong { color: var(--ink-2); font-weight: 600; }
+
+/* ---------- 登录门 ---------- */
+.mgr-gate {
+  border: 1px solid var(--line);
+  background: var(--card);
+  border-radius: var(--r-lg);
+  padding: 30px 26px;
+  box-shadow: var(--sh-1);
+}
+.mgr-gate h2 { font-family: var(--serif); font-size: 20px; margin: 0 0 8px; }
+.mgr-gate p { margin: 0 0 16px; }
+
+/* ---------- 顶部统计 ---------- */
+.mgr-stat {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 28px;
+}
+.mgr-stat-item {
+  border: 1px solid var(--line);
+  background: var(--card);
+  border-radius: var(--r);
+  padding: 14px 16px;
+}
+.mgr-stat-v {
+  font-family: var(--serif);
+  font-size: 24px;
+  line-height: 1.2;
+  color: var(--ink);
+}
+.mgr-stat-l { font-size: 12px; color: var(--ink-3); margin-top: 4px; }
+.mgr-stat-s { font-size: 11px; color: var(--ink-4); margin-top: 2px; }
+
+/* ---------- 分区标题 ---------- */
+.mgr-h2 {
+  font-family: var(--serif);
+  font-size: 18px;
+  margin: 30px 0 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mgr-count {
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--ink-3);
+  background: var(--paper-2);
+  border-radius: 20px;
+  padding: 1px 8px;
+  font-weight: 400;
+}
+.mgr-note { margin: 0 0 12px; line-height: 1.7; }
+.mgr-colact { margin-bottom: 12px; }
+
+/* ---------- 列表 ---------- */
+.mgr-grid { display: grid; gap: 12px; }
+
+.mgr-card {
+  display: flex;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--card);
+  box-shadow: var(--sh-1);
+}
+
+.mgr-cover {
+  flex: 0 0 auto;
+  width: 62px;
+  height: 84px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: #fff;
+  font-family: var(--serif);
+  font-size: 24px;
+  letter-spacing: .04em;
+  user-select: none;
+}
+.mgr-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.mgr-cover-col { background: linear-gradient(150deg, #7c2b20, #3d1c16); font-size: 20px; }
+
+.mgr-main { flex: 1; min-width: 0; }
+
+.mgr-tline { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.mgr-t {
+  font-family: var(--serif);
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.4;
+}
+.mgr-tag {
+  font-size: 11px;
+  color: var(--ink-3);
+  border: 1px solid var(--line-2);
+  border-radius: 20px;
+  padding: 0 7px;
+  line-height: 17px;
+}
+.mgr-tag-on { color: var(--ok); border-color: #bcd8c8; background: #f1f8f4; }
+
+.mgr-meta { font-size: 12px; color: var(--ink-3); margin-top: 5px; }
+.mgr-sub {
+  font-size: 12px;
+  color: var(--ink-4);
+  margin-top: 3px;
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.mgr-acts { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+
+/* ---------- 空态 ---------- */
+.mgr-empty {
+  border: 1px dashed var(--line-2);
+  border-radius: var(--r-lg);
+  padding: 26px 22px;
+  text-align: center;
+  background: var(--paper-2);
+}
+.mgr-empty-t { font-family: var(--serif); font-size: 15px; margin-bottom: 6px; color: var(--ink-2); }
+.mgr-empty-d { font-size: 12px; color: var(--ink-3); line-height: 1.7; margin-bottom: 12px; }
+.mgr-empty-d:last-child { margin-bottom: 0; }
+
+/* ---------- 窄屏 ---------- */
+@media (max-width: 900px) {
+  .mgr-stat { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mgr { padding-top: 24px; padding-bottom: 56px; }
+  .mgr-title { font-size: 22px; }
+}
+
+@media (max-width: 560px) {
+  .mgr-card { padding: 12px; gap: 11px; }
+  .mgr-cover { width: 52px; height: 72px; font-size: 20px; }
+  .mgr-acts .btn { font-size: 12px; padding: 5px 9px; }
+}

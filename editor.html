@@ -12,6 +12,7 @@
 <meta name="description" content="BookBlackNet 编辑器：章节写作、Markdown、专注模式。">
 <meta name="robots" content="noindex">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%239c3a2c'/%3E%3Ctext x='16' y='23' font-size='19' text-anchor='middle' fill='%23fff' font-family='serif'%3E书%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="vditor/4.0.1/dist/index.css">
 <link rel="stylesheet" href="assets/css/base.css">
 <link rel="stylesheet" href="assets/css/write.css">
 </head>
@@ -29,6 +30,7 @@
     </a>
     <nav class="nav-links">
       <a class="nav-link" href="index.html">书库</a>
+      <a class="nav-link" href="collections.html">作品集</a>
       <a class="nav-link" href="write.html">写作台</a>
       <a class="nav-link" href="shelf.html">我的书架</a>
       <a class="nav-link" href="convert.html">格式转换</a>
@@ -119,8 +121,9 @@
       </div>
 
       <input id="ch-title" class="ch-title" maxlength="80" spellcheck="false" placeholder="章节标题">
+      <div id="vditor-host" class="vd-host"></div>
       <textarea id="ed-text" class="ed-text" spellcheck="false"
-                placeholder="从这里开始写。&#10;&#10;支持 Markdown：# 小标题、**加粗**、> 引用、- 列表。&#10;正文里的单个换行会保留，适合小说的短句节奏。"></textarea>
+                placeholder="从这里开始写。"></textarea>
     </div>
 
     <!-- 实时预览 -->
@@ -157,12 +160,14 @@
 <script src="assets/js/core/net.js"></script>
 <script src="assets/js/core/api.js"></script>
 <script src="assets/js/core/auth.js"></script>
+<script src="assets/js/core/cloud.js"></script>
 <script src="assets/js/core/upload.js"></script>
 <script src="assets/js/core/gist.js"></script>
 <script src="assets/js/core/fav.js"></script>
 <script src="assets/js/core/account.js"></script>
 <script src="assets/js/core/nav.js"></script>
 <script src="assets/js/settings.js"></script>
+<script src="vditor/4.0.1/dist/index.min.js"></script>
 <script src="assets/js/editor.js"></script>
 </body>
 </html>

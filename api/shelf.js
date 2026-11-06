@@ -3,13 +3,14 @@
 // 路由：GET /api/shelf   → { ok, shelf }
 //       POST /api/shelf  → { ok }
 //
-// 身份（二者其一）：
-//   ① 邮箱账号：Authorization: Bearer <bbn.email.token>
-//      会话查 Upstash 的 sess:<token>（与 /api/auth 共用同一份数据）
-//   ② 群档案 GitHub 会话：Cookie github_token（Domain=.blacknet.cc.cd）
-//      服务端拿它问 api.github.com/user，取 login 作为身份
+// 身份（只有一种）：
+//   群档案 GitHub 会话：Cookie github_token（Domain=.blacknet.cc.cd）
+//   服务端拿它问 api.github.com/user，取 login 作为身份。
+//   （2026-11 起邮箱账号已停用，sess: 会话不再写入。）
 //
-// 存储：Upstash Redis（与 auth 同一套环境变量），键 bshelf:<uid>。
+// 存储：Upstash Redis，键 bshelf:gh:<login>。
+// 传参：一律 POST body（`["set",key,value]`），不再把值拼进 URL ——
+//       书架整包 JSON 拼 URL 会被中间层按 URL 长度直接拒掉（414/431）。
 // 单用户上限 512KB —— 书架只是「id + 标题 + 封面 + 进度」，远小于此。
 // 隐私：只存书籍编号与进度，不存正文。
 // ============================================================
@@ -26,13 +27,19 @@ function makeStore(env) {
   const base = env.UPSTASH_REDIS_REST_URL || env.KV_REST_API_URL || env.KV_URL;
   const token = env.UPSTASH_REDIS_REST_TOKEN || env.KV_REST_API_TOKEN || env.KV_REST_API_READ_ONLY_TOKEN;
   if (!base || !token) return null;
+  // Upstash REST：POST body 传命令数组，值多大都不经过 URL
   const cmd = async (...args) => {
-    const r = await fetch(base + '/' + args.map((a) => encodeURIComponent(a)).join('/'), {
-      headers: { Authorization: 'Bearer ' + token },
+    const r = await fetch(base, {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + token,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(args),
     });
-    const j = await r.json();
-    if (j.error) throw new Error(j.error);
-    return j.result;
+    const j = await r.json().catch(() => ({}));
+    if (j && j.error) throw new Error(j.error);
+    return j ? j.result : null;
   };
   return {
     get: (k) => cmd('get', k),
@@ -49,18 +56,8 @@ function readCookie(header, name) {
   return '';
 }
 
-/** 解析身份 → 'email:xx@yy' / 'gh:login' / '' */
-async function identify(req, store) {
-  const auth = req.headers['authorization'] || '';
-  if (auth.startsWith('Bearer ')) {
-    const raw = await store.get('sess:' + auth.slice(7));
-    if (raw) {
-      try {
-        const sess = JSON.parse(raw);
-        if (sess && sess.email && (!sess.exp || sess.exp > Date.now())) return 'email:' + String(sess.email).toLowerCase();
-      } catch (e) { /* 会话损坏当作未登录 */ }
-    }
-  }
+/** 解析身份 → 'gh:<login>' / '' */
+async function identify(req) {
   const gh = readCookie(req.headers['cookie'], 'github_token');
   if (gh) {
     const r = await fetch('https://api.github.com/user', {
@@ -107,7 +104,7 @@ export default async function handler(req, res) {
       return res.end(JSON.stringify({ error: '存储未配置：请在 Vercel 面板创建 Upstash Redis 并 Connect 本项目' }));
     }
 
-    const uid = await identify(req, store);
+    const uid = await identify(req);
     if (!uid) {
       res.statusCode = 401;
       res.setHeader('Content-Type', 'application/json; charset=utf-8');

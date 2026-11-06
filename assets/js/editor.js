@@ -21,6 +21,90 @@
     'btn-settings', 'save-hint', 'file-md-hidden'];
   IDS.forEach(id => { els[id.replace(/-([a-z])/g, (_, c) => c.toUpperCase())] = document.getElementById(id); });
 
+  /* ============================================================
+     Vditor 桥接（4.0.1，随仓库内置，不走 CDN）
+     ------------------------------------------------------------
+     设计：textarea 仍是唯一数据源，Vditor 只是它的输入前端。
+       · 写入：setText() 同时更新 textarea 与 Vditor；
+       · 读取：Vditor 的 input 回调把值写回 textarea 并派发 input 事件，
+         所以上层的 onInput / syncCurrent / 字数统计一行都不用改；
+       · 资源缺失（老浏览器、文件没同步）时自动降级回 textarea。
+     ============================================================ */
+  let vd = null, vdReady = null, vdSyncing = false;
+
+  function syncFromVd() {
+    if (!vd || vdSyncing) return;
+    try {
+      const v = vd.getValue();
+      if (typeof v === 'string' && v !== els.edText.value) els.edText.value = v;
+    } catch (e) {}
+  }
+
+  function focusText() {
+    if (vd) { try { vd.focus(); return; } catch (e) {} }
+    els.edText.focus();
+  }
+
+  function setText(v) {
+    v = v == null ? '' : String(v);
+    els.edText.value = v;
+    if (!vd) return;
+    const put = () => {
+      if (vdSyncing) return;
+      vdSyncing = true;
+      try { vd.setValue(v); } catch (e) {}
+      finally { vdSyncing = false; }
+    };
+    if (vdReady) vdReady.then(put).catch(() => {}); else put();
+  }
+
+  function initVditor() {
+    const host = document.getElementById('vditor-host');
+    if (!host || typeof window.Vditor === 'undefined') return;   // 降级：保留 textarea
+
+    vdReady = new Promise((resolve) => {
+      try {
+        vd = new window.Vditor('vditor-host', {
+          cdn: 'vditor/4.0.1',
+          mode: 'ir',
+          height: '100%',
+          minHeight: 320,
+          value: els.edText.value || '',
+          cache: { enable: false },
+          placeholder: '从这里开始写。支持 Markdown：## 小标题、**加粗**、> 引用、- 列表。',
+          toolbar: ['headings', 'bold', 'italic', 'strike', '|', 'quote', 'list', 'ordered-list',
+            'check', '|', 'line', 'link', '|', 'undo', 'redo', '|', 'outline', 'fullscreen'],
+          counter: { enable: true, type: 'markdown' },
+          input: (val) => {
+            if (vdSyncing) return;
+            vdSyncing = true;
+            els.edText.value = val;
+            vdSyncing = false;
+            els.edText.dispatchEvent(new Event('input', { bubbles: true }));
+          },
+          after: () => {
+            try { vd.setValue(els.edText.value || ''); } catch (e) {}
+            const box = host.querySelector('.vditor');
+            if (box) box.addEventListener('focusin', () => { try { closeToc(); } catch (e) {} });
+            resolve();
+          }
+        });
+      } catch (e) {
+        vd = null;
+        resolve();
+      }
+    });
+
+    // Vditor 接管后收起原生输入区与旧工具栏（避免两套工具同时可点）
+    if (vd) {
+      if (els.edTools) els.edTools.classList.add('hidden');
+      els.edText.classList.add('hidden');
+      if (host) host.classList.remove('hidden');
+    } else {
+      els.edText.classList.remove('hidden');   // 降级：继续用 textarea
+    }
+  }
+
   /* ---------------- 状态 ---------------- */
   const S = {
     book: null,
@@ -37,9 +121,13 @@
   /* ============================================================
      1. 打开 / 章节管理
      ============================================================ */
-  async function openEditor(id) {
-    const book = await store.get(id);
-    if (!book) { toast('本机没有这本书的草稿', 'err'); setTimeout(() => { location.href = 'write.html'; }, 900); return; }
+  async function openEditor(id, preset) {
+    const book = preset || await store.get(id);
+    if (!book) {
+      toast('本机与账号云端都没有这本书的草稿', 'err');
+      setTimeout(() => { location.href = 'write.html'; }, 900);
+      return;
+    }
 
     S.book = book;
     book.chapters = book.chapters || [];
@@ -56,7 +144,7 @@
     document.title = (book.meta.title || '未命名作品') + ' · 编辑器';
     els.bookTitle.value = book.meta.title || '';
     els.chTitle.value = pick.title || '';
-    els.edText.value = pick.content || '';
+    setText(pick.content || '');
     if (undo) undo.clear();
 
     renderChapters();
@@ -65,7 +153,7 @@
     refreshSaveHint();
     setFoot('就绪');
 
-    setTimeout(() => els.edText.focus(), 60);
+    setTimeout(() => focusText(), 60);
   }
 
   function refreshBadge() {
@@ -120,14 +208,14 @@
     if (!c) return;
     S.chId = id;
     els.chTitle.value = c.title || '';
-    els.edText.value = c.content || '';
+    setText(c.content || '');
     els.edText.scrollTop = 0;
     util.store.set('bbn.lastChapter.' + S.book.id, id);
     renderChapters();
     refreshStats();
     if (undo) undo.clear();
     if (S.preview) renderPreview();
-    els.edText.focus();
+    focusText();
     closeToc();
   }
 
@@ -147,7 +235,7 @@
     S.book.chapters.push(c);
     S.chId = c.id;
     els.chTitle.value = c.title;
-    els.edText.value = '';
+    setText('');
     if (undo) undo.clear();
     util.store.set('bbn.lastChapter.' + S.book.id, c.id);
     renderChapters();
@@ -167,7 +255,7 @@
       const next = S.book.chapters[Math.max(0, i - 1)];
       S.chId = next.id;
       els.chTitle.value = next.title;
-      els.edText.value = next.content;
+      setText(next.content);
       if (undo) undo.clear();
       renderChapters();
       refreshStats();
@@ -193,6 +281,7 @@
      ============================================================ */
   function syncCurrent() {
     if (!S.book) return;
+    syncFromVd();
     const c = currentChapter();
     if (!c) return;
     const t = els.chTitle.value.trim();
@@ -233,7 +322,8 @@
       setFoot('已自动保存', 'ok');
       refreshSaveHint();
       refreshStats();
-      if (B.gist) B.gist.onBookSaved(S.book);   // 云同步（阶段 4 接入，无 gist.js 时为空操作）
+      if (B.gist) B.gist.onBookSaved(S.book);   // 主通道：Gist 草稿同步
+      scheduleCloudSync();                      // 备份通道：账号云端（换设备用，节流 30s）
     } catch (e) {
       console.error(e);
       setFoot('保存失败：' + e.message, 'err');
@@ -253,6 +343,33 @@
       S.book.meta.updatedAt = new Date().toISOString();
       store.save(S.book).catch(() => {});
     } catch (e) {}
+  }
+
+  /* ---------------- 账号云端（Upstash）作为备份 ----------------
+     Gist 是主通道（推送即到），这里是「换设备也能编辑」的兜底：
+       · 节流 30s，未登录 / 后端不可用 / 超出单本上限时静默跳过；
+       · 只在打开书时读取一次（本机没有草稿才会用到）。 */
+  let cloudTimer = null;
+  let cloudBusy = false;
+  let cloudHint = '';
+  function scheduleCloudSync() {
+    if (!B.cloud || !B.cloud.works || cloudTimer) return;
+    cloudTimer = setTimeout(async () => {
+      cloudTimer = null;
+      if (cloudBusy || !S.book) return;
+      cloudBusy = true;
+      try {
+        await B.cloud.works.save({
+          id: S.book.id, meta: S.book.meta,
+          chapters: S.book.chapters, published: S.book.published || null
+        });
+        cloudHint = '云端已备份 ' + new Date().toTimeString().slice(0, 5);
+        els.footState.title = cloudHint;
+      } catch (e) {
+        cloudHint = '云端备份跳过：' + e.message;
+        els.footState.title = cloudHint;
+      } finally { cloudBusy = false; }
+    }, 30000);
   }
 
   /* ============================================================
@@ -295,7 +412,7 @@
   function toggleFocus(force) {
     S.focus = force === undefined ? !S.focus : force;
     document.body.classList.toggle('focus', S.focus);
-    if (S.focus) { els.edText.focus(); setFoot('专注模式 · Esc 退出'); }
+    if (S.focus) { focusText(); setFoot('专注模式 · Esc 退出'); }
     else { setFoot('就绪'); refreshStats(); }
   }
 
@@ -933,13 +1050,35 @@
      ============================================================ */
   async function boot() {
     bind();
+    initVditor();
     const id = util.qs('id') || util.qs('d');   // Bug B：兼容 ?d= 入口
     if (!id) { location.replace('write.html'); return; }
     // 写作需登录群档案账号（Cookie Domain=.blacknet.cc.cd 自动携带）
     const user = await B.auth.me();
     if (!user) { showLoginGate(id, user === null ? 'notlogin' : 'unknown'); return; }
     S.user = user;
-    await openEditor(id);
+
+    // 本机有草稿 → 直接用；没有 → 从账号云端恢复（换设备 / 清了浏览器数据）
+    const local = await store.get(id).catch(() => null);
+    if (!local && B.cloud && B.cloud.works) {
+      let remote = null;
+      try { remote = await B.cloud.works.get(id); } catch (e) { remote = null; }
+      if (remote) {
+        const book = {
+          id: remote.id || id,
+          meta: remote.meta || {},
+          chapters: Array.isArray(remote.chapters) ? remote.chapters : [],
+          published: remote.published || null,
+          createdAt: (remote.meta && remote.meta.createdAt) || new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        await store.save(book).catch(() => {});
+        await openEditor(id, book);
+        toast('已从账号云端恢复草稿', 'ok');
+        return;
+      }
+    }
+    await openEditor(id, local || undefined);
   }
 
   /* 登录门：未登录不给进编辑器（GitHub 会话 或 邮箱账号） */

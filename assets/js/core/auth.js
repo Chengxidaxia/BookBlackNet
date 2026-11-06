@@ -1,5 +1,5 @@
 /* ============================================================
-   core/auth.js — 群书阁账号（双通道：群档案 GitHub 会话 / 邮箱）
+   core/auth.js — 群书阁账号（仅群档案 GitHub 会话）
 
    通道 A（github）：复用主站 OAuth 会话。
      · Cookie github_token 的 Domain=.blacknet.cc.cd，book 子域
@@ -80,67 +80,13 @@
     try { await netFetch(LOGOUT_URL, { method: 'POST', credentials: 'include' }); } catch (e) {}
   }
 
-  /* ---------------- 通道 B：邮箱账号 ---------------- */
-  function emailToken() { try { return localStorage.getItem(EMAIL_TOKEN_KEY) || ''; } catch (e) { return ''; } }
-
-  async function authFetch(path, body) {
-    const headers = { 'Content-Type': 'application/json' };
-    const t = emailToken();
-    if (t) headers['Authorization'] = 'Bearer ' + t;
-    const init = {
-      method: body ? 'POST' : 'GET',
-      headers: headers,
-      body: body ? JSON.stringify(body) : undefined
-    };
-    // 主路径：同源 Netlify Function；网络失败或 404（GitHub Pages 镜像等无 Functions 环境）时回退 CF Worker
-    let r;
-    try {
-      r = await netFetch(AUTH_URL + path, init);
-    } catch (e) {
-      r = await netFetch(AUTH_URL_FALLBACK + path, init);
-    }
-    if (r.status === 404 && AUTH_URL !== AUTH_URL_FALLBACK) {
-      r = await netFetch(AUTH_URL_FALLBACK + path, init);
-    }
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data.error || ('HTTP ' + r.status));
-    return data;
-  }
-
-  function saveEmailSession(token, user) {
-    try {
-      localStorage.setItem(EMAIL_TOKEN_KEY, token);
-      localStorage.setItem(EMAIL_USER_KEY, JSON.stringify(user));
-    } catch (e) {}
-    const u = { provider: 'email', login: user.email, email: user.email, name: user.name, avatar: '' };
-    writeCache(u);
-    cached = u;
-    return u;
-  }
-
-  async function emailLogin(email, password) {
-    const d = await authFetch('/login', { email: email, password: password });
-    return saveEmailSession(d.token, d.user);
-  }
-
-  async function emailRegister(email, password, name) {
-    const d = await authFetch('/register', { email: email, password: password, name: name });
-    return saveEmailSession(d.token, d.user);
-  }
-
-  async function emailLogout() {
-    try { if (emailToken()) await authFetch('/logout'); } catch (e) {}
-    try {
-      localStorage.removeItem(EMAIL_TOKEN_KEY);
-      localStorage.removeItem(EMAIL_USER_KEY);
-    } catch (e) {}
-    clearCache();
-    cached = null;
-  }
-
-  function emailUserCached() {
-    try { return JSON.parse(localStorage.getItem(EMAIL_USER_KEY) || 'null'); } catch (e) { return null; }
-  }
+  /* 邮箱账号已停用（2026-11）：只保留群档案 GitHub 会话。
+     保留同名空实现，避免旧调用点抛 undefined。 */
+  function emailLogin(){ return Promise.reject(new Error("邮箱账号已停用，请用群档案 GitHub 账号登录")); }
+  function emailRegister(){ return emailLogin(); }
+  function emailLogout(){ return Promise.resolve(); }
+  function emailToken(){ return ""; }
+  function emailUserCached(){ return null; }
 
   /* ---------------- 统一入口 ---------------- */
   /** 当前账号；null=未登录，undefined=检测失败（网络）。邮箱令牌优先。 */
@@ -151,21 +97,6 @@
       if (c) { cached = c; return c; }
     }
     const p = (async () => {
-      // 1) 邮箱令牌
-      if (emailToken()) {
-        try {
-          const d = await authFetch('/me');
-          if (d && d.user) {
-            const u = { provider: 'email', login: d.user.email, email: d.user.email, name: d.user.name, avatar: '' };
-            writeCache(u);
-            return u;
-          }
-        } catch (e) {
-          if (/未登录/.test(e.message)) {   // 令牌失效则清掉，继续探测 GitHub
-            try { localStorage.removeItem(EMAIL_TOKEN_KEY); localStorage.removeItem(EMAIL_USER_KEY); } catch (e2) {}
-          }
-        }
-      }
       // 2) 群档案 GitHub 会话
       try {
         const u = await ghMe();
@@ -173,9 +104,6 @@
         clearCache();
         return null;
       } catch (e) {
-        // 断网兜底：邮箱本地缓存
-        const eu = emailUserCached();
-        if (eu && emailToken()) return { provider: 'email', login: eu.email, email: eu.email, name: eu.name, avatar: '' };
         return null;
       }
     })();
@@ -184,7 +112,6 @@
   }
 
   async function logout() {
-    await emailLogout();
     await ghLogout();
     clearCache();
     cached = null;
