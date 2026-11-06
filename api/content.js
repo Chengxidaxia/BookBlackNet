@@ -130,23 +130,32 @@ function send(res, status, obj) {
   res.statusCode = status;
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
   res.setHeader('Cache-Control', 'no-store');
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, PUT, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   res.end(JSON.stringify(obj));
 }
 
-function corsPreflight(res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+// 写接口要带 Cookie，不能用 ACAO:*（与 Allow-Credentials 互斥），
+// 所以按白名单回显 Origin；同源请求不需要这些头，照常工作。
+const ORIGINS = [
+  'https://grp.blacknet.cc.cd',
+  'https://book.blacknet.cc.cd',
+  'http://localhost:8123', 'http://127.0.0.1:8123',
+  'http://localhost:4173', 'http://127.0.0.1:4173',
+];
+
+function cors(req, res) {
+  const origin = (req.headers && req.headers.origin) || '';
+  if (ORIGINS.indexOf(origin) >= 0) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Vary', 'Origin');
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET, PUT, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.statusCode = 204;
-  res.end();
 }
 
 export default async function handler(req, res) {
-  if (req.method === 'OPTIONS') return corsPreflight(res);
+  cors(req, res);
+  if (req.method === 'OPTIONS') { res.statusCode = 204; return res.end(); }
 
   const kv = makeKV(process.env);
   const envData = parseEnv(process.env);
