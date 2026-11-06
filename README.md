@@ -48,10 +48,10 @@ BookBlackNet/
 │  ├─ works.js   /api/works   书稿云同步（分块存 Upstash）
 │  ├─ collections.js /api/collections  作品集：服务端代写进仓库
 │  ├─ publish.js /api/publish 作品发布：服务端代写（BOT_GH_TOKEN）
-│  ├─ content.js /api/content 分类与公告：读 Global Config
+│  ├─ content.js /api/content 作品分类：读写 Upstash 的 bn:content
 │  └─ token.js   /api/token   把 HttpOnly Cookie 里的令牌还给本人
 ├─ lib/                     平台无关核心（api / netlify 两套入口共用）
-│  ├─ auth-core.mjs  gh-core.mjs  imgup.mjs
+│  ├─ gh-core.mjs  imgup.mjs
 │  ├─ cloud.mjs               Upstash / 身份解析 / CORS / 响应工具
 │  └─ gh-publish.mjs          GitHub Contents 读写、清单与索引合并
 ├─ netlify/functions/       Netlify 版入口（只在主仓库的开发副本里，不同步）
@@ -269,10 +269,11 @@ Gist 仍是主通道，账号云端是**备份**（不需要用户自己配令�
 | `/api/works` | GET / POST / DELETE | 账号书稿云同步（分块） | Upstash Redis |
 | `/api/collections` | POST / DELETE | 作品集发布与删除（写书籍仓库） | GitHub + `BOT_GH_TOKEN` |
 | `/api/publish` | POST | 作品发布代写（分片 → 清单 → 索引） | GitHub + `BOT_GH_TOKEN` |
-| `/api/content` | GET | 分类与公告（与主站同一份） | `GLOBAL_CONFIG` |
+| `/api/content` | GET / PUT | 分类与公告（与主站同一份）；PUT 需 GitHub 登录且在 `CONTENT_ADMIN` 名单里 | Upstash `bn:content` |
 | `/api/token` | GET | 把 Cookie 里的 GitHub 令牌还给本人（`no-store`） | Cookie |
 
-> 没有 Redis 变量时：`/api/auth` 返回 503，书架退回纯本地，其余功能不受影响。
+> 没有 Redis 变量时：`/api/content` 返回内置默认值（`source:"default"`），书架退回纯本地，
+> 其余功能不受影响。首次读取空键会自动把默认值播种进 Redis。
 > 图片上传主通道走同源 `/api/imgup`，兜底是 CF `upload.blacknet.cc.cd`（Bearer PAT / Cookie）。
 
 ---
@@ -316,9 +317,9 @@ python -m http.server 8123
 
 | 变量 | 用途 |
 |---|---|
-| `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | 账号、会话、账号书架、书稿云同步 |
+| `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | 账号、账号书架、书稿云同步、分类公告（`bn:content`） |
 | `BOT_GH_TOKEN` | 对书籍仓库有 `contents:write` 的令牌，服务端代写发布用。不配则回退用户令牌，此时只有仓库协作者能发 |
-| `GLOBAL_CONFIG` | Global Config 连接串（与 `vercel-proxy` 同一个服务），读作品分类与公告 |
+| `CONTENT_ADMIN` | 可选，`/api/content` 的 PUT 白名单（逗号分隔 GitHub 登录名），默认 `Chengxidaxia` |
 | `BOOKS_REPO` / `BOOKS_BRANCH` / `BOOKS_DIR` / `COLLECTIONS_DIR` | 可选，默认 `Chengxidaxia/BookBlackNet` / `main` / `docs/books` / `docs/collections` |
 
 `vercel.json` 里的关键规则：

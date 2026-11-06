@@ -5,7 +5,7 @@
 
      书稿草稿  /api/works        Upstash（长篇正文，分块上传）
      作品集    docs/collections/  书籍仓库静态文件；写走 /api/collections 代写
-     分类公告  /api/content      Vercel Global Config（与 proxy 同一服务）
+     分类公告  /api/content      Upstash 的 bn:content（与主站同一个库）
 
    身份：邮箱账号走 Authorization: Bearer（localStorage）；
         群档案 GitHub 会话走 Cookie（credentials: include）。
@@ -56,7 +56,7 @@ window.BKN = window.BKN || {};
       _content = await api('/api/content', { method: 'GET' });
       if (!_content || !_content.categories) throw new Error('内容格式不对');
     } catch (e) {
-      // 后端不可用（本地预览 / GC 未配）→ 用 config.js 里的兜底
+      // 后端不可用（本地预览 / Upstash 未配）→ 用 config.js 里的兜底
       _content = {
         categories: { grp: [], bn: (CFG.CATEGORIES || []).slice() },
         announcements: [],
