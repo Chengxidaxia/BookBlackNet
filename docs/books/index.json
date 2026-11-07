@@ -1,7 +1,7 @@
 {
   "format": "bookblacknet.index",
   "v": 1,
-  "updatedAt": "2026-11-02T12:02:25.663Z",
+  "updatedAt": "2026-11-07T03:10:39.612Z",
   "books": [
     {
       "id": "bk_mvx8msy4fzgjau",
@@ -20,7 +20,9 @@
       },
       "chapters": 1,
       "words": 3,
-      "updatedAt": "2026-11-01T11:59:28.777Z",
+      "createdAt": "2026-11-07T03:10:38.238Z",
+      "updatedAt": "2026-11-07T03:10:38.238Z",
+      "account": "Chengxidaxia",
       "file": "bk_mvx8msy4fzgjau.book",
       "chunks": 1
     },
