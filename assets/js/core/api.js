@@ -586,6 +586,41 @@ window.BKN = window.BKN || {};
     return j;
   }
 
+  /* ---------------- 下架后清掉「已发布」标记 ----------------
+     下架只删仓库里的正文与索引，本地 IndexedDB 与云端备份里那本书还在，
+     而 published 字段是「我发过」的凭据：不清它，写作台列表、编辑器右上角
+     徽章、云端草稿卡片会一直显示「已发布」。这里把两处都改回草稿态。
+     本地是毫秒级的，云端要读回整本再写，所以给它一个短超时，超时就放过
+     （下次打开编辑器仍会以本地状态为准）。 */
+  async function clearPublishedLocal(id) {
+    try {
+      if (!B.store || !B.store.get) return;
+      const b = await B.store.get(id);
+      if (!b || !b.published) return;
+      b.published = null;
+      if (b.meta) b.meta.updatedAt = new Date().toISOString();
+      await B.store.save(b);
+    } catch (e) { /* 本地没有这本书就算了 */ }
+  }
+
+  async function clearPublishedCloud(id) {
+    const works = B.cloud && B.cloud.works;
+    if (!works || !works.get) return;
+    const step = (async () => {
+      const c = await works.get(id);
+      if (!c || !c.published) return;
+      c.published = null;
+      await works.save(c);
+    })();
+    // 云端慢不该拖住「已下架」提示；3 秒拿不到就先放过
+    await Promise.race([step.catch(() => {}), new Promise(r => setTimeout(r, 3000))]);
+  }
+
+  async function clearPublishedFlag(id) {
+    await clearPublishedLocal(id);
+    await clearPublishedCloud(id);
+  }
+
   async function unpublish(id) {
     const bpath = bookPath(id);
 
@@ -593,6 +628,7 @@ window.BKN = window.BKN || {};
     try {
       await unpublishViaServer(id);
       markRemoved(id);      // 快照更新前先本地隐藏，避免刷新又冒出来
+      await clearPublishedFlag(id);
       bustCdn();
       return true;
     } catch (e) {
@@ -603,7 +639,7 @@ window.BKN = window.BKN || {};
 
     // ② 浏览器直连 GitHub（只有仓库协作者会成功）
     const old = await ghGet(bpath);
-    if (!old) { markRemoved(id); return true; }
+    if (!old) { markRemoved(id); await clearPublishedFlag(id); return true; }
     // 先删分块（若有），再删清单
     const m = old.content ? isManifest(old.content) : null;
     if (m && m.parts && m.parts.length) {
@@ -631,6 +667,7 @@ window.BKN = window.BKN || {};
       } catch (e) {}
     }
     markRemoved(id);
+    await clearPublishedFlag(id);
     bustCdn();
     return true;
   }
