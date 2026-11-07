@@ -60,7 +60,12 @@ window.BKN = window.BKN || {};
     return [
       el('h4.set-h', { text: '编辑器' }),
       numRow('正文字号', 'editor.fontSize', 12, 24, 1, 'px'),
-      selectRow('正文字体', 'editor.fontFamily', [['serif', '衬线（宋）'], ['sans', '无衬线（黑）']]),
+      selectRow('正文字体', 'editor.fontFamily', [
+        ['serif', '衬线（宋）'],
+        ['sans', '无衬线（黑）'],
+        ['mono', '等宽（西文/数字）'],
+        ['shserif', '思源宋（需本机已装）']
+      ], () => B.prefs.applyEditor()),
       numRow('行距倍数', 'editor.lineHeight', 1.4, 2.6, 0.05),
       selectRow('界面主题', 'editor.uiTheme', [['light', '浅色'], ['sepia', '羊皮纸'], ['night', '夜间']], v => {
         document.body.dataset.uiTheme = v;
@@ -90,7 +95,12 @@ window.BKN = window.BKN || {};
       numRow('正文字号', 'reader.fontSize', 14, 28, 1, 'px'),
       numRow('行距倍数', 'reader.lineHeight', 1.4, 2.8, 0.05),
       numRow('版心宽度', 'reader.width', 560, 1000, 20, 'px'),
-      selectRow('正文字体', 'reader.font', [['serif', '衬线（宋）'], ['sans', '无衬线（黑）']]),
+      selectRow('正文字体', 'reader.font', [
+        ['serif', '衬线（宋）'],
+        ['sans', '无衬线（黑）'],
+        ['mono', '等宽（西文/数字）'],
+        ['shserif', '思源宋（需本机已装）']
+      ]),
       selectRow('阅读主题', 'reader.theme', [['paper', '纸白'], ['sepia', '羊皮纸'], ['green', '护眼绿'], ['night', '夜间']]),
       switchRow('段落首行缩进', '', 'reader.indent'),
       switchRow('点击屏幕左右侧翻页', '', 'reader.clickTurn'),

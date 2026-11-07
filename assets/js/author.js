@@ -69,7 +69,7 @@
       state.books.length
         ? el('div.au-grid', state.books.map((b) =>
             el('article.au-b', {
-              on: { click: () => { location.href = 'detail.html?id=' + encodeURIComponent(b.id); } }
+              on: { click: () => { location.href = 'book.html?id=' + encodeURIComponent(b.id); } }
             },
               el('div.au-b-cov', { style: coverStyle(b), text: coverText(b) }),
               el('div.au-b-in',

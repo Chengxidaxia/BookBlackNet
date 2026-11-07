@@ -40,7 +40,14 @@
           "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
   --serif: "Noto Serif SC", "Source Han Serif SC", "Songti SC", "STSong",
            "SimSun", Georgia, serif;
-  --mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas, monospace;
+  /* 思源档：先把思源宋体各命名都试一遍，再回退到系统宋。装了思源的设备
+     才看得出区别；没装则会渲染成系统宋（与「宋」档几乎一致，不报错）。 */
+  --serif-sh: "Source Han Serif SC", "Source Han Serif CN", "Noto Serif SC",
+              "Noto Serif CJK SC", "Songti SC", "STSong", "SimSun", Georgia, serif;
+  /* 等宽档：只影响西文与数字，中文字符会自动回退到系统中文（等宽中文字体
+     在桌面/移动端都不普及，硬塞字体栈只会变成乱回退）。 */
+  --mono: ui-monospace, "SF Mono", "SFMono-Regular", "Cascadia Mono",
+          "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace;
 
   --nav-bg: rgba(250, 247, 241, .88);
   --nav-h: 62px;

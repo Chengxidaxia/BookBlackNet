@@ -9,6 +9,22 @@
   padding-bottom: 72px;
 }
 
+/* author.html 的 <main class="mgr-wrap"> 原先没有任何样式 —— 既没有 .wrap
+   的 max-width/居中，也没有左右内边距，内容在窄屏直接顶到屏幕边缘。
+   这里把 .wrap 的行为补上（只写左右显式值，不用 padding 简写，
+   否则上下值会把左右内边距冲成 0）。 */
+.mgr-wrap {
+  width: 100%;
+  max-width: var(--wrap);
+  margin: 0 auto;
+  padding: 34px 26px 72px;
+  position: relative;
+  z-index: 1;
+}
+@media (max-width: 760px) {
+  .mgr-wrap { padding-left: 16px; padding-right: 16px; }
+}
+
 .mgr-head { margin-bottom: 22px; }
 
 .mgr-title {

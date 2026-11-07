@@ -46,7 +46,11 @@
     root.style.setProperty('--rw', r.width + 'px');
     root.style.setProperty('--rfs', r.fontSize + 'px');
     root.style.setProperty('--rlh', r.lineHeight);
-    root.style.setProperty('--rfont', r.font === 'sans' ? 'var(--sans)' : 'var(--serif)');
+    // 字体档位统一由 prefs.FONT_STACK 提供（都是字体栈，不加载 webfont）
+    root.style.setProperty('--rfont',
+      (window.BKN && window.BKN.prefs && window.BKN.prefs.stackOf)
+        ? window.BKN.prefs.stackOf(r.font)
+        : (r.font === 'sans' ? 'var(--sans)' : 'var(--serif)'));
     root.setAttribute('data-theme', r.theme || 'paper');
     els.valSize.textContent = r.fontSize;
     document.querySelectorAll('#seg-lh button').forEach(b => b.classList.toggle('on', +b.dataset.v === +r.lineHeight));

@@ -3,6 +3,10 @@
   "outputDirectory": ".",
   "cleanUrls": true,
   "trailingSlash": false,
+  "redirects": [
+    { "source": "/detail", "destination": "/book", "permanent": false },
+    { "source": "/detail.html", "destination": "/book", "permanent": false }
+  ],
   "rewrites": [
     { "source": "/api/gh", "destination": "/api/gh" },
     { "source": "/api/gh/:path*", "destination": "/api/gh" },
