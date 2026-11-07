@@ -1,6 +1,17 @@
 {
   "format": "bookblacknet.collections",
   "v": 1,
-  "updatedAt": "",
-  "items": []
+  "updatedAt": "2026-11-07T09:13:40.645Z",
+  "items": [
+    {
+      "id": "cl_mw66rv0bh2w9",
+      "title": "Example",
+      "desc": "Introduction",
+      "account": "Chengxidaxia",
+      "author": "城西大侠",
+      "cover": null,
+      "count": 3,
+      "updatedAt": "2026-11-07T09:13:39.515Z"
+    }
+  ]
 }
