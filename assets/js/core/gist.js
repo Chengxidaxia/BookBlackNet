@@ -101,6 +101,36 @@ window.BKN = window.BKN || {};
     return res.json();
   }
 
+  /* ---------------- 权限自检 ----------------
+     GitHub 在任何鉴权请求的响应头里回 x-oauth-scopes。旧令牌（授权时
+     还没申请 gist 域）要等到第一次写 gist 才 403，用户只看到「同步失败」。
+     这里在页面预热令牌后就问一次，提前把「需要重新授权」说清楚。
+     · 响应头被代理吞掉（拿不到）时一律当作通过，不做误报；
+     · 每个页面只查一次，不额外消耗限流。 */
+  let _scopeChecked = false;
+  let _scopes = null;
+
+  async function checkScope(force) {
+    if (_scopeChecked && !force) return _scopes ? _scopes.indexOf('gist') >= 0 : true;
+    const t = await ensureToken();
+    if (!t) return false;
+    _scopeChecked = true;
+    try {
+      const res = await net.fetch('https://api.github.com/user', {
+        headers: { 'Authorization': 'Bearer ' + t, 'Accept': 'application/vnd.github+json' }
+      });
+      const raw = res.headers.get('x-oauth-scopes');
+      if (raw === null) return true;                       // 无法判断 → 不拦
+      _scopes = raw.split(',').map(s => s.trim()).filter(Boolean);
+      const ok = _scopes.indexOf('gist') >= 0;
+      if (!ok && status !== 'err') {
+        setStatus('err', '令牌缺少 gist 权限（当前：' + (_scopes.join(', ') || '无') +
+          '）：请先退出登录，再用 GitHub 重新登录并同意 gist，或在设置里填写含 gist 的令牌');
+      }
+      return ok;
+    } catch (e) { return true; }
+  }
+
   /** 找到或创建 workspace gist，返回 gist id */
   async function ensureGist() {
     const saved = localStorage.getItem(ID_KEY);
@@ -305,6 +335,11 @@ window.BKN = window.BKN || {};
   async function syncNow(book, onAsk) {
     await ensureToken();
     if (!enabled()) { toast('云同步未启用：请先在设置里填写含 gist 权限的令牌', 'err'); return null; }
+    // 令牌在但不含 gist → 直接说清楚，不要等 PATCH 回来 403
+    if (!(await checkScope())) {
+      toast(B.gist.lastError() || '当前令牌缺少 gist 权限，请重新授权', 'err');
+      return null;
+    }
     setStatus('syncing');
     if (book) await syncBook(book, true);
     const r = await pullAll(onAsk).catch(() => null);
@@ -334,11 +369,16 @@ window.BKN = window.BKN || {};
   // 页面打开就预热一次令牌：群档案登录态 → Cookie 里的 GitHub 令牌，
   // 之后编辑器保存时 enabled() 直接为 true，自动同步无需用户再点任何东西。
   if (B.api && B.api.resolveToken) {
-    ensureToken().then(t => { if (t && status === 'idle') setStatus('idle'); }).catch(() => {});
+    ensureToken().then(t => {
+      if (!t) return;
+      if (status === 'idle') setStatus('idle');
+      checkScope().catch(() => {});   // 缺 gist 时 checkScope 内部会把状态标红并写明原因
+    }).catch(() => {});
   }
 
   B.gist = { enabled, ensureGist, syncBook, pullAll, pushProgress, pullProgress,
              removeBook, onBookSaved, syncNow, askConflict, token, setToken, clearToken,
+             checkScope, scopes: () => _scopes,
              onStatus, lastError, get status() { return status; }, STATUS_LABEL: {
                off: '未启用', idle: '未同步', syncing: '同步中…', ok: '已同步', err: '同步失败'
              } };

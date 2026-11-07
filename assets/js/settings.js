@@ -127,8 +127,16 @@ window.BKN = window.BKN || {};
           status.lastChild.textContent = '校验中…';
           try {
             const r = await B.api.checkToken();
-            status.className = 'pub-status ok';
-            status.lastChild.textContent = '已连接 ' + r.user + ' · ' + r.repo + (r.private ? '（私有）' : '（公开）') + (r.push ? ' · 可写入' : ' · 只读，无法发布');
+            // 顺带查一次 Gist 权限：发布能过、云同步却 403 是最难自查的组合
+            let gistNote = '';
+            let gistOk = true;
+            if (B.gist && B.gist.checkScope) {
+              gistOk = await B.gist.checkScope(true);
+              const sc = B.gist.scopes && B.gist.scopes();
+              if (sc) gistNote = gistOk ? ' · 云同步可用' : ' · 缺 gist 权限，云同步会被拒（需重新登录授权）';
+            }
+            status.className = 'pub-status ' + (gistOk ? 'ok' : 'err');
+            status.lastChild.textContent = '已连接 ' + r.user + ' · ' + r.repo + (r.private ? '（私有）' : '（公开）') + (r.push ? ' · 可写入' : ' · 只读，无法发布') + gistNote;
           } catch (err) {
             status.className = 'pub-status err';
             status.lastChild.textContent = err.message;

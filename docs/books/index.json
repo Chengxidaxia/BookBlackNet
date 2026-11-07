@@ -1,33 +1,30 @@
 {
   "format": "bookblacknet.index",
   "v": 1,
-  "updatedAt": "2026-11-07T03:37:51.403Z",
+  "updatedAt": "2026-11-07T10:12:21.594Z",
   "books": [
     {
-      "id": "bk_sample_longnight",
-      "title": "长夜将明",
-      "author": "沈砚",
-      "category": "悬疑",
-      "tags": [
-        "民俗",
-        "群像",
-        "慢热"
-      ],
-      "status": "ongoing",
+      "id": "bk_mvx8msy4fzgjau",
+      "title": "未test作品",
+      "author": "城西大侠",
+      "intro": "",
+      "category": "其他",
+      "tags": [],
+      "status": "done",
       "visibility": "public",
-      "intro": "县城的灯一盏一盏灭下去，最后只剩守夜人的那扇窗。他记下每一盏灯熄灭的时间，也记下每一个没能走出长夜的人。",
-      "createdAt": "2026-09-02T10:00:00.000Z",
-      "updatedAt": "2026-10-21T21:40:00.000Z",
       "cover": {
         "type": "letter",
-        "from": "#3f4a58",
-        "to": "#1c2229",
-        "text": "长"
+        "from": "#6b5340",
+        "to": "#31241a",
+        "text": "未"
       },
-      "chapters": 3,
-      "words": 1244,
-      "file": "bk_sample_longnight.book",
-      "account": "Chengxidaxia"
+      "chapters": 1,
+      "words": 3,
+      "createdAt": "2026-11-07T03:10:38.238Z",
+      "updatedAt": "2026-11-07T03:10:38.238Z",
+      "account": "Chengxidaxia",
+      "file": "bk_mvx8msy4fzgjau.book",
+      "chunks": 1
     },
     {
       "id": "bk_sample_bookshop",
@@ -53,6 +50,32 @@
       "chapters": 2,
       "words": 937,
       "file": "bk_sample_bookshop.book",
+      "account": "Chengxidaxia"
+    },
+    {
+      "id": "bk_sample_longnight",
+      "title": "长夜将明",
+      "author": "沈砚",
+      "category": "悬疑",
+      "tags": [
+        "民俗",
+        "群像",
+        "慢热"
+      ],
+      "status": "ongoing",
+      "visibility": "public",
+      "intro": "县城的灯一盏一盏灭下去，最后只剩守夜人的那扇窗。他记下每一盏灯熄灭的时间，也记下每一个没能走出长夜的人。",
+      "createdAt": "2026-09-02T10:00:00.000Z",
+      "updatedAt": "2026-10-21T21:40:00.000Z",
+      "cover": {
+        "type": "letter",
+        "from": "#3f4a58",
+        "to": "#1c2229",
+        "text": "长"
+      },
+      "chapters": 3,
+      "words": 1244,
+      "file": "bk_sample_longnight.book",
       "account": "Chengxidaxia"
     },
     {
