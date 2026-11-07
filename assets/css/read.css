@@ -214,6 +214,92 @@ body.reading[data-theme="night"] .reader-bar { background: rgba(20, 21, 26, .86)
 #chap-body em { font-style: italic; }
 #chap-body .md-figure { text-indent: 0; text-align: center; }
 #chap-body code { font-family: var(--mono); font-size: .85em; }
+#chap-body li > p, #chap-body li p { text-indent: 0; }
+#chap-body strong { font-weight: 600; }
+#chap-body del { opacity: .62; }
+#chap-body ins { text-decoration-color: var(--accent); }
+
+/* -------- 完整 Markdown 才有的元素（marked 渲染） -------- */
+/* 锚点跳转时不要被固定顶栏盖住 */
+#chap-body [id], .reader-art [id] { scroll-margin-top: 76px; }
+
+/* 链接：正文里要看得出来是链接，外链还带 ↗ */
+#chap-body a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(156, 58, 44, .35);
+  transition: text-decoration-color .15s;
+  word-break: break-word;
+  /* write.css 的 .md-body a 也作用在阅读页（#reader-art 带 md-body 类），
+     那条用的是 border-bottom；这里关掉，避免下划线 + 边框双重装饰 */
+  border-bottom: 0;
+}
+#chap-body a:hover { text-decoration-color: var(--accent); }
+#chap-body a[target="_blank"]::after {
+  content: "↗";
+  font-size: .82em;
+  margin-left: 1px;
+  opacity: .7;
+}
+
+/* 表格：手机上整体可横向滚动，不撑破版心 */
+#chap-body table {
+  width: 100%;
+  margin: 1.4em 0;
+  border-collapse: collapse;
+  font-size: .92em;
+  font-family: var(--sans);
+  letter-spacing: 0;
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+#chap-body table thead th {
+  background: var(--paper-2);
+  font-weight: 600;
+}
+#chap-body table th,
+#chap-body table td {
+  border: 1px solid var(--line);
+  padding: 7px 11px;
+  text-align: left;
+  vertical-align: top;
+  white-space: normal;
+}
+#chap-body table tbody tr:nth-child(even) td { background: rgba(0, 0, 0, .015); }
+
+/* 任务列表 */
+#chap-body ul.md-tasks { padding-left: .3em; list-style: none; }
+#chap-body li.md-task-item { list-style: none; display: flex; align-items: baseline; gap: 7px; }
+#chap-body li.md-task-item > ul { width: 100%; margin-top: .3em; }
+#chap-body li.md-task-item input[type="checkbox"] {
+  flex: 0 0 auto;
+  width: 14px; height: 14px;
+  accent-color: var(--accent);
+  transform: translateY(1px);
+}
+
+/* 其他常见内联/块级 */
+#chap-body kbd {
+  font-family: var(--mono);
+  font-size: .82em;
+  padding: .14em .42em;
+  border: 1px solid var(--line-2);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: var(--card);
+  color: var(--ink-2);
+}
+#chap-body mark { background: rgba(255, 208, 84, .38); color: inherit; padding: 0 .1em; border-radius: 2px; }
+#chap-body details {
+  margin: 1.2em 0; padding: 10px 14px;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--card);
+}
+#chap-body summary { cursor: pointer; color: var(--ink-2); font-size: .94em; }
+#chap-body img { max-width: 100%; height: auto; border-radius: 6px; }
+#chap-body .md-pre { margin: 1.4em 0; }
 
 /* 章节导航 */
 .chap-nav {

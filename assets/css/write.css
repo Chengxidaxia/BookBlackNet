@@ -299,6 +299,45 @@ body.focus .focus-exit { display: inline-flex; }
 .md-body .md-pre code { background: none; border: 0; padding: 0; font-size: .84em; line-height: 1.7; }
 .md-body a { color: var(--accent); border-bottom: 1px solid rgba(156,58,44,.28); }
 .md-body a:hover { border-bottom-color: var(--accent); }
+.md-body a[target="_blank"]::after { content: "↗"; font-size: .82em; margin-left: 1px; opacity: .7; }
+.md-body [id] { scroll-margin-top: 24px; }
+.md-body strong { font-weight: 600; }
+.md-body del { opacity: .62; }
+.md-body ins { text-decoration-color: var(--accent); }
+
+/* -------- 完整 Markdown 才有的元素（marked 渲染） -------- */
+.md-body table {
+  width: 100%; margin: 1.4em 0;
+  border-collapse: collapse;
+  font-size: .92em; font-family: var(--sans);
+  display: block; overflow-x: auto; white-space: nowrap;
+}
+.md-body table thead th { background: var(--paper-2); font-weight: 600; }
+.md-body table th, .md-body table td {
+  border: 1px solid var(--line); padding: 7px 11px;
+  text-align: left; vertical-align: top; white-space: normal;
+}
+.md-body table tbody tr:nth-child(even) td { background: rgba(0, 0, 0, .015); }
+
+.md-body ul.md-tasks { padding-left: .3em; list-style: none; }
+.md-body li.md-task-item { list-style: none; display: flex; align-items: baseline; gap: 7px; }
+.md-body li.md-task-item > ul { width: 100%; margin-top: .3em; }
+.md-body li.md-task-item input[type="checkbox"] {
+  flex: 0 0 auto; width: 14px; height: 14px;
+  accent-color: var(--accent); transform: translateY(1px);
+}
+
+.md-body kbd {
+  font-family: var(--mono); font-size: .82em;
+  padding: .14em .42em; border: 1px solid var(--line-2); border-bottom-width: 2px;
+  border-radius: 4px; background: var(--card); color: var(--ink-2);
+}
+.md-body mark { background: rgba(255, 208, 84, .38); color: inherit; padding: 0 .1em; border-radius: 2px; }
+.md-body details {
+  margin: 1.2em 0; padding: 10px 14px;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--card);
+}
+.md-body summary { cursor: pointer; color: var(--ink-2); font-size: .94em; }
 .md-body img { margin: 1.2em auto; border-radius: 6px; }
 .md-body .md-figure { text-align: center; }
 .md-body mark { background: #f7e6bd; color: inherit; padding: 0 .14em; border-radius: 2px; }

@@ -92,6 +92,22 @@ export default async function handler(req, res) {
       const entry = cleanEntry(body.entry, me.login, file, total);
       if (entry.id !== id) return sendJSON(res, 400, { error: 'entry.id 与文件名不一致' });
 
+      // 章节数 / 字数以正文明文头为准，不信任客户端传来的 entry。
+      // .book 的 meta 是明文（crypto.pack 用 chapters.length 写入），第一片
+      // 就包含它，所以这里直接读 .p001 的头部即可，无需解密。
+      try {
+        const p1 = await gh.getFile(BOOKS_DIR + '/' + partName(file, 1));
+        if (p1 && p1.text) {
+          const head = p1.text.slice(0, 8000);
+          const mc = /"chapters"\s*:\s*(\d+)/.exec(head);
+          const mw = /"words"\s*:\s*(\d+)/.exec(head);
+          if (mc && +mc[1] > 0) {
+            entry.chapters = +mc[1];
+            if (mw && +mw[1] > 0) entry.words = +mw[1];
+          }
+        }
+      } catch (e) { /* 读不到就沿用客户端值，不因此让发布失败 */ }
+
       // 归属校验：已有 account 且不是本人 → 拒绝
       const idx = await gh.getFile(INDEX_FILE);
       let prevList = [];

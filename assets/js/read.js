@@ -175,6 +175,8 @@
     els.chapTitle.textContent = c.title || ('第 ' + (S.idx + 1) + ' 章');
     els.chapBody.innerHTML = md.render(c.content) ||
       '<p class="muted" style="text-indent:0">（本章暂时没有内容）</p>';
+    // 正文里的 #锚点 要走我们的解析（标题 id 不是原文片段，直接点会没反应）
+    try { md.bindAnchors(els.chapBody); } catch (e) {}
 
     els.btnPrev.disabled = S.idx <= 0;
     els.btnNext.disabled = S.idx >= list.length - 1;

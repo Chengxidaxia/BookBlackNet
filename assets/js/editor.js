@@ -432,6 +432,7 @@
     const text = c ? c.content : '';
     els.previewBody.innerHTML = md.render(text) ||
       '<p class="muted" style="font-size:13px;font-family:var(--sans)">这一章还是空的。</p>';
+    try { md.bindAnchors(els.previewBody); } catch (e) {}
     els.previewCount.textContent = num(words(text)) + ' 字';
   }, 180);
 

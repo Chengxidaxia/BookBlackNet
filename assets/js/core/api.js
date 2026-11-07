@@ -411,11 +411,39 @@ window.BKN = window.BKN || {};
 
   /* ---------------- 发布 ---------------- */
   /**
+   * 从打包好的 .book 里读「真实」章节数与字数。
+   * crypto.pack 在明文头 meta 里写的是 chapters.length 与实际统计值，
+   * 所以它比调用方传进来的 meta 更可信 —— 索引里的 chapters/words
+   * 一律以正文为准，避免"元数据说 3 章、正文其实 23 章"这种不同步。
+   * @returns {{chapters:number, words:number}|null}
+   */
+  function statsOfPacked(packed) {
+    if (!packed || typeof packed.json !== 'string') return null;
+    // 先用正则只扫开头（meta 位于 JSON 最前，避免解析几 MB 全文）
+    const head = packed.json.slice(0, 8000);
+    const mc = /"chapters"\s*:\s*(\d+)/.exec(head);
+    const mw = /"words"\s*:\s*(\d+)/.exec(head);
+    if (mc) return { chapters: +mc[1] || 0, words: mw ? (+mw[1] || 0) : 0 };
+    // 兜底：整体解析（旧格式 .bookp 或字段顺序异常时）
+    try {
+      const j = B.util.safeJSON(packed.json, null);
+      const m = (j && (j.meta || (j.pub && j.pub))) || {};
+      return { chapters: +m.chapters || 0, words: +m.words || 0 };
+    } catch (e) { return null; }
+  }
+
+  /**
    * @param {Object} packed  {json, fileName}
    * @param {Object} meta    书籍元数据（用于更新索引）
    * @returns {Promise<{mode:string, sha?:string, url?:string}>}
    */
   async function publish(packed, meta) {
+    // 章节数 / 字数以正文为准（见 statsOfPacked），覆盖调用方可能过期或缺失的值
+    const stats = statsOfPacked(packed);
+    if (stats && stats.chapters > 0) {
+      meta = Object.assign({}, meta, { chapters: stats.chapters });
+      if (stats.words > 0) meta.words = stats.words;
+    }
     // ① 服务端代写优先：用户不需要仓库写权限，只要登录了 GitHub 账号。
     //    服务端拿 BOT_GH_TOKEN 提交，并把 account 写成当前登录名。
     // ② 服务端不可用（本地预览没 Function / 后端 500）→ 回退用户令牌直连。
