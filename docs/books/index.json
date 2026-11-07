@@ -1,8 +1,35 @@
 {
   "format": "bookblacknet.index",
   "v": 1,
-  "updatedAt": "2026-11-07T10:12:21.594Z",
+  "updatedAt": "2026-11-07T11:36:32.780Z",
   "books": [
+    {
+      "id": "bk_sample_starmap",
+      "title": "星图之外",
+      "author": "K. 陆",
+      "intro": "导航员在第七次跃迁后发现，星图上多了一颗不该存在的恒星。它正以每秒三十公里的速度，朝着飞船驶来。",
+      "category": "科幻",
+      "tags": [
+        "硬科幻",
+        "太空",
+        "短篇"
+      ],
+      "status": "ongoing",
+      "visibility": "public",
+      "cover": {
+        "type": "letter",
+        "from": "#37506e",
+        "to": "#1a283a",
+        "text": "星"
+      },
+      "chapters": 23,
+      "words": 21781,
+      "createdAt": "2026-11-07T11:36:31.551Z",
+      "updatedAt": "2026-11-07T11:36:31.551Z",
+      "account": "Chengxidaxia",
+      "file": "bk_sample_starmap.book",
+      "chunks": 1
+    },
     {
       "id": "bk_sample_bookshop",
       "title": "旧书店的第七个夏天",
@@ -53,32 +80,6 @@
       "chapters": 3,
       "words": 1244,
       "file": "bk_sample_longnight.book",
-      "account": "Chengxidaxia"
-    },
-    {
-      "id": "bk_sample_starmap",
-      "title": "星图之外",
-      "author": "K. 陆",
-      "category": "科幻",
-      "tags": [
-        "硬科幻",
-        "太空",
-        "短篇"
-      ],
-      "status": "done",
-      "visibility": "public",
-      "intro": "导航员在第七次跃迁后发现，星图上多了一颗不该存在的恒星。它正以每秒三十公里的速度，朝着飞船驶来。",
-      "createdAt": "2026-08-11T12:00:00.000Z",
-      "updatedAt": "2026-09-30T20:05:00.000Z",
-      "cover": {
-        "type": "letter",
-        "from": "#37506e",
-        "to": "#1a283a",
-        "text": "星"
-      },
-      "chapters": 3,
-      "words": 1000,
-      "file": "bk_sample_starmap.book",
       "account": "Chengxidaxia"
     }
   ]
