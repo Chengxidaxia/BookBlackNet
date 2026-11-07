@@ -1,7 +1,7 @@
 {
   "format": "bookblacknet.index",
   "v": 1,
-  "updatedAt": "2026-11-07T12:09:55.356Z",
+  "updatedAt": "2026-11-07T13:07:25.111Z",
   "books": [
     {
       "id": "bk_mw66s4zj1v4rq8",
@@ -23,9 +23,9 @@
         "text": "P"
       },
       "chapters": 1,
-      "words": 348,
-      "createdAt": "2026-11-07T12:09:53.865Z",
-      "updatedAt": "2026-11-07T12:09:53.865Z",
+      "words": 435,
+      "createdAt": "2026-11-07T13:07:23.826Z",
+      "updatedAt": "2026-11-07T13:07:23.826Z",
       "account": "Chengxidaxia",
       "file": "bk_mw66s4zj1v4rq8.book",
       "chunks": 1
