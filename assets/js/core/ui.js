@@ -152,7 +152,7 @@ window.BKN = window.BKN || {};
       const i = val.indexOf(v);
       if (i >= 0) val.splice(i, 1);
       else {
-        if (max > 0 && val.length >= max) { B.util.toast('最多选择 ' + max + ' 个大标签', 'err'); return; }
+        if (max > 0 && val.length >= max) { B.util.toast('最多选择 ' + max + ' 个', 'err'); return; }
         val.push(v);
       }
       paint();

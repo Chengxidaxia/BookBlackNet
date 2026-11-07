@@ -131,7 +131,7 @@ BookBlackNet/
 }
 ```
 
-- **大标签（分类）可多选**：`categories` 是真实来源，`category` 只是第一个的兼容副本
+- **分类可多选**：`categories` 是真实来源，`category` 只是第一个的兼容副本
   （老索引、老 `.book` 只有 `category`，前端统一用 `BKN.util.cats()` 归一成数组）；
   服务端 `api/publish.js`、`api/works.js` 的 `cleanCats()` 会保留最多 8 个。
 

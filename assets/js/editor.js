@@ -610,7 +610,7 @@
           return list;
         })(),
         value: util.cats(m),
-        placeholder: '未分类（可多选）'
+        placeholder: '未分类'
       }),
       status: el('select.select',
         el('option', { value: 'ongoing', text: '连载中' }),
@@ -668,7 +668,7 @@
       el('div.form-grid',
         el('div.field.full', el('label.label', { text: '作品名' }), f.title),
         el('div.field', el('label.label', { text: '笔名' }), f.author),
-        el('div.field', el('label.label', { text: '大标签（可多选）' }), f.category.node),
+        el('div.field', el('label.label', { text: '分类' }), f.category.node),
         el('div.field', el('label.label', { text: '连载状态' }), f.status),
         el('div.field', el('label.label', { text: '标签' }), f.tags),
         el('div.field.full', el('label.label', { text: '简介' }), f.intro)
