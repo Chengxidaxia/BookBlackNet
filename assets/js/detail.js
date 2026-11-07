@@ -103,7 +103,7 @@ window.BKN = window.BKN || {};
             : el('span', { text: entry.author || '佚名', itemprop: 'author' })),
           el('span.sep', { text: '·' }),
           el('span.dt-status', { text: statusTxt }),
-          entry.category ? [el('span.sep', { text: '·' }), el('span', { text: entry.category })] : null
+          B.util.cats(entry).map(c => [el('span.sep', { text: '·' }), el('span', { text: c })])
         ),
         el('div.dt-tags',
           (entry.tags || []).map(t => el('span.tag', { text: t }))

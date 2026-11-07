@@ -22,12 +22,12 @@ window.BKN = window.BKN || {};
     if (q) {
       out = out.filter(b => {
         const m = b.meta || {};
-        const hay = [m.title, m.author, m.intro, (m.tags || []).join(' ')]
+        const hay = [m.title, m.author, m.intro, B.util.cats(m).join(' '), (m.tags || []).join(' ')]
           .filter(Boolean).join(' ').toLowerCase();
         return hay.indexOf(q) >= 0;
       });
     }
-    if (f.cat) out = out.filter(b => b.meta && b.meta.category === f.cat);
+    if (f.cat) out = out.filter(b => b.meta && B.util.cats(b.meta).indexOf(f.cat) >= 0);
     if (f.status === 'draft') out = out.filter(b => !b.published);
     else if (f.status === 'published') out = out.filter(b => !!b.published);
     else if (f.status === 'private') out = out.filter(b => b.meta && b.meta.visibility === 'private');

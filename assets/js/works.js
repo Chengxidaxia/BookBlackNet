@@ -171,7 +171,7 @@
       b.author || '佚名',
       (b.words ? num(b.words) + ' 字' : ''),
       (b.chapters ? b.chapters + ' 章' : ''),
-      b.category || ''
+      util.cats(b).join('、')
     ].filter(Boolean).join(' · ');
 
     return el('article.mgr-card',

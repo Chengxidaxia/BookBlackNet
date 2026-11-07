@@ -191,8 +191,36 @@ window.BKN = window.BKN || {};
     node.style.fontSize = size + 'px';
   }
 
+  /* ---------------- 分类（大标签） ----------------
+     一本书可以有多个大标签。真实来源是 categories 数组；
+     老数据只有 category 字符串（可能是「玄幻」或被顿号拼起来的多个），
+     这里统一归一成去重后的数组，其他地方一律走它，别再直接读 .category。 */
+  function cats(src) {
+    if (!src) return [];
+    let arr;
+    if (Array.isArray(src)) arr = src;
+    else if (Array.isArray(src.categories)) arr = src.categories;
+    else if (src.category) arr = String(src.category).split(/[,，、/|]+/);
+    else arr = [];
+    const out = [];
+    arr.forEach(v => {
+      const s = String(v == null ? '' : v).trim().slice(0, 20);
+      if (s && out.indexOf(s) < 0) out.push(s);
+    });
+    return out;
+  }
+
+  /* 分类展示文本：最多 max 个，其余收成「等 N 类」 */
+  function catText(src, max) {
+    const a = cats(src);
+    if (!a.length) return '';
+    const n = max || 2;
+    return a.length <= n ? a.join('、') : a.slice(0, n).join('、') + ' 等 ' + a.length + ' 类';
+  }
+
   B.util = { $, $$, el, esc, toast, words, num, timeAgo, dateStr,
-             debounce, uid, safeJSON, store, copy, download, go, qs, fitText };
+             debounce, uid, safeJSON, store, copy, download, go, qs, fitText,
+             cats, catText };
 
   /* LS 兼容别名：home.js / read.js / detail.js 里直接用了 LS.get / LS.set，
      但此前从未定义过（一走到就 ReferenceError）。这里补上 —— 语义与

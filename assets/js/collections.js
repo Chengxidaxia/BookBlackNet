@@ -178,7 +178,7 @@
       pickBox.innerHTML = '';
       const list = books.filter((b) => {
         if (!q) return true;
-        return ((b.title || '') + ' ' + (b.author || '') + ' ' + (b.category || '')).toLowerCase().indexOf(q) >= 0;
+        return ((b.title || '') + ' ' + (b.author || '') + ' ' + util.cats(b).join(' ')).toLowerCase().indexOf(q) >= 0;
       });
       if (!list.length) {
         pickBox.appendChild(el('div.cl-empty-d', { text: '没有匹配的作品' }));

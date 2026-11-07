@@ -9,7 +9,7 @@
   const B = window.BKN;
   const { util, md, store, api } = B;
   const { el, toast, words, num, dateStr, debounce, safeJSON } = util;
-  const { dialog, confirmBox, promptDialog } = B.ui;
+  const { dialog, confirmBox, promptDialog, multiSelect } = B.ui;
   const CFG = window.BOOK || {};
   // 标签上限（config.js 的 MAX_TAGS，默认 12）—— 多处要用，收成一个函数免得漏改
   const MAX_TAGS = () => (+CFG.MAX_TAGS || 12);
@@ -601,9 +601,17 @@
     const f = {
       title: el('input.input', { value: m.title || '', maxlength: '60' }),
       author: el('input.input', { value: m.author || (S.user ? S.user.name : ''), maxlength: '30', placeholder: S.user ? ('留空则署名「' + S.user.name + '」') : '笔名' }),
-      category: el('select.select', [el('option', { value: '', text: '未分类' })].concat(CFG.CATEGORIES.map(c => el('option', { value: c, text: c }))).concat(
-        CFG.CATEGORIES.indexOf(m.category) < 0 && m.category ? [el('option', { value: m.category, text: m.category, selected: true })] : []
-      )),
+      // 大标签：一本书可以属于多个分类（下拉多选）
+      category: multiSelect({
+        options: (function () {
+          const list = (CFG.CATEGORIES || []).slice();
+          // 老数据里可能有已经下线的分类名，保留在列表顶部，免得保存时被悄悄丢掉
+          util.cats(m).forEach(c => { if (list.indexOf(c) < 0) list.push(c); });
+          return list;
+        })(),
+        value: util.cats(m),
+        placeholder: '未分类（可多选）'
+      }),
       status: el('select.select',
         el('option', { value: 'ongoing', text: '连载中' }),
         el('option', { value: 'done', text: '已完结' })
@@ -612,9 +620,7 @@
       intro: el('textarea.textarea', { rows: '4', maxlength: '500', placeholder: '一段能让人想点开的简介' }),
       private: el('input', { type: 'checkbox', checked: m.visibility === 'private' })
     };
-    f.category.value = m.category || '';
-    f.status.value = m.status === 'done' ? 'done' : 'ongoing';
-    f.intro.value = m.intro || '';
+    f.status.value = m.status === 'done' ? 'done' : 'ongoing';    f.intro.value = m.intro || '';
 
     const coverPrev = el('div.cover-prev', {
       text: B.crypto.firstChar(m.title || '书'),
@@ -662,7 +668,7 @@
       el('div.form-grid',
         el('div.field.full', el('label.label', { text: '作品名' }), f.title),
         el('div.field', el('label.label', { text: '笔名' }), f.author),
-        el('div.field', el('label.label', { text: '分类' }), f.category),
+        el('div.field', el('label.label', { text: '大标签（可多选）' }), f.category.node),
         el('div.field', el('label.label', { text: '连载状态' }), f.status),
         el('div.field', el('label.label', { text: '标签' }), f.tags),
         el('div.field.full', el('label.label', { text: '简介' }), f.intro)
@@ -699,7 +705,11 @@
           label: '保存', cls: 'primary', onClick: ({ close }) => {
             m.title = f.title.value.trim() || '未命名作品';
             m.author = f.author.value.trim();
-            m.category = f.category.value;
+            // 大标签：数组是真实来源，category 保留第一个给老代码/老索引兜底
+            const cats = f.category.get();
+            m.categories = cats;
+            m.category = cats[0] || '';
+            f.category.close();
             m.status = f.status.value;
             m.tags = f.tags.value.split(/[,，\s]+/).map(s => s.trim()).filter(Boolean).slice(0, MAX_TAGS());
             m.intro = f.intro.value.trim();
@@ -783,7 +793,7 @@
           const packed = { json: text, fileName: pub.id + '.book', bytes: api.utf8Len ? api.utf8Len(text) : text.length };
           const entry = B.crypto.summaryOf({
             id: pub.id, title: pub.title, author: pub.author, intro: pub.intro,
-            category: pub.category, tags: pub.tags, status: pub.status, visibility: pub.visibility,
+            category: pub.category, categories: pub.categories, tags: pub.tags, status: pub.status, visibility: pub.visibility,
             chapters: pub.chapters, words: pub.words,
             createdAt: pub.createdAt, updatedAt: new Date().toISOString()
           });
@@ -877,7 +887,7 @@
               const packed = await buildPacked();
               const entry = {
                 id: S.book.id, title: m.title, author: m.author || '佚名', intro: m.intro,
-                category: m.category, tags: m.tags, status: m.status, visibility: m.visibility,
+                category: m.category, categories: m.categories, tags: m.tags, status: m.status, visibility: m.visibility,
                 account: m.account || '', cover: S.book.meta.cover, chapters: chapCount, words: total
               };
               const res = await api.publish(packed, entry);

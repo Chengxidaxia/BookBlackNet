@@ -35,14 +35,31 @@ const INDEX_FILE = process.env.BOOKS_INDEX || 'docs/books/index.json';
 
 const [OWNER, NAME] = REPO.split('/');
 
+// 大标签（分类）：一本作品可以有多个。categories 是真实来源，
+// category 保留第一个，兼容只读 category 的老客户端。
+const MAX_CATS = 8;
+function cleanCats(src) {
+  const raw = Array.isArray(src.categories)
+    ? src.categories
+    : String(src.category || '').split(/[,，、/|]+/);
+  const out = [];
+  raw.forEach((t) => {
+    const s = String(t == null ? '' : t).trim().slice(0, 20);
+    if (s && out.indexOf(s) < 0 && out.length < MAX_CATS) out.push(s);
+  });
+  return out;
+}
+
 function cleanEntry(e, login, file, total) {
   const src = e || {};
+  const cats = cleanCats(src);
   return {
     id: String(src.id || '').replace(/[^\w-]/g, '').slice(0, 60),
     title: String(src.title || '未命名作品').slice(0, 60),
     author: String(src.author || src.account || login).slice(0, 30),
     intro: String(src.intro || '').slice(0, 500),
-    category: String(src.category || '其他').slice(0, 20),
+    category: cats[0] || '其他',
+    categories: cats.length ? cats : ['其他'],
     tags: Array.isArray(src.tags) ? src.tags.filter((t) => typeof t === 'string').slice(0, MAX_TAGS) : [],
     status: src.status === 'done' ? 'done' : 'ongoing',
     visibility: src.visibility === 'private' ? 'private' : 'public',

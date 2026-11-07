@@ -45,8 +45,7 @@
   function renderCats() {
     const cats = [];
     allBooks.forEach(b => {
-      const c = b.meta && b.meta.category;
-      if (c && cats.indexOf(c) < 0) cats.push(c);
+      util.cats(b.meta).forEach(c => { if (c && cats.indexOf(c) < 0) cats.push(c); });
     });
     cats.sort((a, b) => CFG.CATEGORIES.indexOf(a) - CFG.CATEGORIES.indexOf(b));
     const box = els.shelfCats;
@@ -83,10 +82,12 @@
       const m = book.meta || {};
       const cov = B.crypto.coverOf(m);
       const wc = bookWords(book);
+      const catList = util.cats(m);
       const tagRow = el('div.desk-tags',
         el('span.badge.' + (book.published ? 'badge-live' : 'badge-draft'), { text: book.published ? '已发布' : '草稿' }),
         m.visibility === 'private' ? el('span.badge.badge-priv', { text: '私密' }) : null,
-        m.category ? el('span.tag', { text: m.category }) : null
+        catList.slice(0, 2).map(c => el('span.tag', { text: c })),
+        catList.length > 2 ? el('span.tag', { text: '+' + (catList.length - 2) }) : null
       );
       (m.tags || []).slice(0, 4).forEach(t => {
         tagRow.appendChild(el('button.tag.tag-act', {

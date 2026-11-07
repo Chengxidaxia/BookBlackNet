@@ -111,7 +111,7 @@ BookBlackNet/
   "v": 1,
   "meta": {
     "id": "bk_...", "title": "长夜将明", "author": "沈砚",
-    "intro": "...", "category": "悬疑", "tags": ["民俗"],
+    "intro": "...", "category": "悬疑", "categories": ["悬疑", "都市"], "tags": ["民俗"],
     "status": "ongoing",            // ongoing | done
     "visibility": "public",         // public | private
     "cover": { "type": "letter", "from": "#7c3a2e", "to": "#3d1c16", "text": "长" },
@@ -130,6 +130,10 @@ BookBlackNet/
   }
 }
 ```
+
+- **大标签（分类）可多选**：`categories` 是真实来源，`category` 只是第一个的兼容副本
+  （老索引、老 `.book` 只有 `category`，前端统一用 `BKN.util.cats()` 归一成数组）；
+  服务端 `api/publish.js`、`api/works.js` 的 `cleanCats()` 会保留最多 8 个。
 
 ### 3.2 分块清单（仓库里看到的 `.book`）
 

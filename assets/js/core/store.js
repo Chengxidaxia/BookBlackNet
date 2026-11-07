@@ -110,6 +110,7 @@ window.BKN = window.BKN || {};
         author: '',
         intro: '',
         category: '',
+        categories: [],
         tags: [],
         status: 'ongoing',
         visibility: 'public',

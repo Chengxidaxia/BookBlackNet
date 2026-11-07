@@ -43,14 +43,30 @@ function splitText(str, max) {
 
 const MAX_TAGS = 12;                      // 标签上限，与 assets/js/config.js 的 MAX_TAGS 保持一致
 
+const MAX_CATS = 8;
+// 大标签（分类）:categories 数组为准，category 只是第一个的兼容副本
+function cleanCats(src) {
+  const raw = Array.isArray(src.categories)
+    ? src.categories
+    : String(src.category || '').split(/[,，、/|]+/);
+  const out = [];
+  raw.forEach((t) => {
+    const s = String(t == null ? '' : t).trim().slice(0, 20);
+    if (s && out.indexOf(s) < 0 && out.length < MAX_CATS) out.push(s);
+  });
+  return out;
+}
+
 function cleanMeta(m, id) {
   const src = m || {};
+  const cats = cleanCats(src);
   return {
     id: String(src.id || id).replace(/[^\w-]/g, '').slice(0, 60),
     title: String(src.title || '未命名作品').slice(0, 60),
     author: String(src.author || '').slice(0, 30),
     intro: String(src.intro || '').slice(0, 500),
-    category: String(src.category || '').slice(0, 20),
+    category: cats[0] || '',
+    categories: cats,
     tags: Array.isArray(src.tags) ? src.tags.filter((t) => typeof t === 'string').slice(0, MAX_TAGS) : [],
     status: src.status === 'done' ? 'done' : 'ongoing',
     visibility: src.visibility === 'private' ? 'private' : 'public',
