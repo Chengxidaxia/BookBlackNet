@@ -1,7 +1,7 @@
 {
   "format": "bookblacknet.index",
   "v": 1,
-  "updatedAt": "2026-11-07T11:36:32.780Z",
+  "updatedAt": "2026-11-07T11:36:42.455Z",
   "books": [
     {
       "id": "bk_sample_starmap",
@@ -24,8 +24,8 @@
       },
       "chapters": 23,
       "words": 21781,
-      "createdAt": "2026-11-07T11:36:31.551Z",
-      "updatedAt": "2026-11-07T11:36:31.551Z",
+      "createdAt": "2026-11-07T11:36:41.160Z",
+      "updatedAt": "2026-11-07T11:36:41.160Z",
       "account": "Chengxidaxia",
       "file": "bk_sample_starmap.book",
       "chunks": 1
