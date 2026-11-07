@@ -146,12 +146,14 @@
 
     const btnOff = el('button.btn.btn-sm.danger', { text: '下架' });
     btnOff.addEventListener('click', () => {
-      confirmBox('下架《' + title + '》', '会从书库删除正文与索引条目，读者立刻读不到；本机草稿与云端草稿都会保留。', '确认下架', async () => {
+      confirmBox('下架《' + title + '》', '会从书库删除正文与索引条目，读者将读不到这本书；本机草稿与云端草稿都会保留。', '确认下架', async () => {
         btnOff.disabled = true;
         btnOff.textContent = '处理中…';
         try {
           await api.unpublish(b.id);
-          toast('已下架', 'ok');
+          const card = btnOff.closest('.mgr-card');
+          if (card && card.parentNode) card.parentNode.removeChild(card);
+          toast('已下架（书库快照约 10 秒后同步）', 'ok');
           load();
         } catch (e) {
           toast('下架失败：' + e.message, 'err');

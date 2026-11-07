@@ -77,6 +77,41 @@ window.BKN = window.BKN || {};
     try { sessionStorage.setItem(BUST_KEY, String(Date.now())); } catch (e) {}
   }
 
+  /* ---------------- 刚下架的书（本地墓碑） ----------------
+     下架是「改仓库文件」，而书库读的是站点上的静态快照：Vercel 收到
+     GitHub 的提交后要重新部署（约 10 秒起），这期间同源 / CDN / raw
+     三层拿到的都还是旧索引 —— 于是页面刷新也照样看得见刚下架的书。
+     这里在本地记一份墓碑，索引里再出现就过滤掉；等某次真读不到它了，
+     说明快照已更新，墓碑自动清除。 */
+  const REMOVED_KEY = 'bbn.removed';
+
+  function removedList() {
+    try {
+      const v = JSON.parse(sessionStorage.getItem(REMOVED_KEY) || '[]');
+      return Array.isArray(v) ? v.filter(x => typeof x === 'string' && x) : [];
+    } catch (e) { return []; }
+  }
+
+  function markRemoved(id) {
+    const set = new Set(removedList());
+    set.add(String(id));
+    try { sessionStorage.setItem(REMOVED_KEY, JSON.stringify([...set])); } catch (e) {}
+  }
+
+  /** 过滤掉本地已下架的书；顺带清理已经失效的墓碑 */
+  function applyRemoved(books) {
+    const rm = removedList();
+    if (!rm.length) return books;
+    const alive = new Set(books.map(b => b && b.id));
+    const keep = rm.filter(id => alive.has(id));
+    if (keep.length !== rm.length) {
+      try { sessionStorage.setItem(REMOVED_KEY, JSON.stringify(keep)); } catch (e) {}
+    }
+    if (!keep.length) return books;
+    const gone = new Set(keep);
+    return books.filter(b => !gone.has(b.id));
+  }
+
   const siteTimeout = () => (CFG.CDN && CFG.CDN.siteTimeout) || 5000;
 
   /** 带超时的文本 GET（一个源卡住不会拖死整页） */
@@ -153,6 +188,13 @@ window.BKN = window.BKN || {};
     return Array.isArray(books) ? books.filter(b => b && b.id) : null;
   }
 
+  /** 索引命中：统一走本地墓碑过滤，再记一份供版本戳复用 */
+  function indexHit(books, source, url) {
+    const v = applyRemoved(books);
+    _idx = v;
+    return { books: v, source, url };
+  }
+
   /**
    * 读取书目索引：同源 →（jsDelivr 各节点并发）→ raw.githubusercontent。
    * @param {{stamp?:string}} [opt] 传入固定戳可强制走某个缓存版本
@@ -165,7 +207,7 @@ window.BKN = window.BKN || {};
     const siteUrl = CFG.INDEX_FILE + '?v=' + st;
     try {
       const books = parseIndex(await getText(siteUrl, siteTimeout()));
-      if (books) { _idx = books; return { books, source: 'site', url: siteUrl }; }
+      if (books) return indexHit(books, 'site', siteUrl);
     } catch (e) { /* 下一层 */ }
 
     // ② CDN 并发竞速
@@ -173,14 +215,14 @@ window.BKN = window.BKN || {};
     try {
       const hit = await raceText(cdnList);
       const books = parseIndex(hit.txt);
-      if (books) { _idx = books; return { books, source: 'cdn', url: hit.url }; }
+      if (books) return indexHit(books, 'cdn', hit.url);
     } catch (e) { /* 下一层 */ }
 
     // ③ raw 兜底
     const rawU = rawUrl(CFG.INDEX_FILE) + '?v=' + st;
     try {
       const books = parseIndex(await getText(rawU));
-      if (books) { _idx = books; return { books, source: 'raw', url: rawU }; }
+      if (books) return indexHit(books, 'raw', rawU);
     } catch (e) { /* 全挂 */ }
 
     _idx = [];
@@ -526,22 +568,42 @@ window.BKN = window.BKN || {};
     return { mode: 'worker', sha: j.sha, url: j.url || bookPath(meta.id) };
   }
 
+  /** 服务端代写下架：与发布同一条通道，任意 GitHub 登录用户都能下架自己的书 */
+  async function unpublishViaServer(id) {
+    const res = await net.fetch('/api/unpublish', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: id })
+    });
+    let j = {};
+    try { j = await res.json(); } catch (e) { j = {}; }
+    if (!res.ok || (j && j.ok === false)) {
+      const err = new Error((j && j.error) || ('下架失败（HTTP ' + res.status + '）'));
+      err.status = res.status;
+      throw err;
+    }
+    return j;
+  }
+
   async function unpublish(id) {
     const bpath = bookPath(id);
-    if (auth.mode() === 'worker') {
-      const base = (CFG.API_BASE || '').replace(/\/$/, '');
-      const res = await fetch(base + '/unpublish', {
-        method: 'POST', credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: id })
-      });
-      const j = await res.json().catch(() => ({}));
-      if (!res.ok || !j.ok) throw new Error(j.error || '下架失败');
+
+    // ① 服务端代写（默认通道）
+    try {
+      await unpublishViaServer(id);
+      markRemoved(id);      // 快照更新前先本地隐藏，避免刷新又冒出来
       bustCdn();
       return true;
+    } catch (e) {
+      // 401/403/400 是明确拒绝，不再兜底，否则会盖掉真实原因
+      if (e && (e.status === 400 || e.status === 401 || e.status === 403)) throw e;
+      // 其余（Function 不存在 / 网络）退回到浏览器直连
     }
+
+    // ② 浏览器直连 GitHub（只有仓库协作者会成功）
     const old = await ghGet(bpath);
-    if (!old) return true;
+    if (!old) { markRemoved(id); return true; }
     // 先删分块（若有），再删清单
     const m = old.content ? isManifest(old.content) : null;
     if (m && m.parts && m.parts.length) {
@@ -568,6 +630,7 @@ window.BKN = window.BKN || {};
           'index: remove ' + id, idx.sha);
       } catch (e) {}
     }
+    markRemoved(id);
     bustCdn();
     return true;
   }
