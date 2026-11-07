@@ -310,12 +310,14 @@ window.BKN = window.BKN || {};
     if (ids) return order(ids);
 
     // ② 回退：逐个读（带缓存）
+    //    只缓存**非空**结果：空数组很可能是网络抖动 / CDN 尚未就绪导致的，
+    //    缓存它会让这本书在整段会话里一直显示「无收录」，比不缓存糟得多。
     const key = 'bbn.collof.' + id + '.' + collIndexUpdated(items);
     try {
       const c = sessionStorage.getItem(key);
       if (c) {
         const arr = B.util.safeJSON(c, null);
-        if (Array.isArray(arr)) return order(arr);
+        if (Array.isArray(arr) && arr.length) return order(arr);
       }
     } catch (e) { /* 隐私模式忽略 */ }
 
@@ -328,7 +330,9 @@ window.BKN = window.BKN || {};
       } catch (e) { return null; }
     });
     const got = found.filter(Boolean);
-    try { sessionStorage.setItem(key, JSON.stringify(got)); } catch (e) {}
+    if (got.length) {
+      try { sessionStorage.setItem(key, JSON.stringify(got)); } catch (e) {}
+    }
     return order(got);
   }
 
