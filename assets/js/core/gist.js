@@ -36,12 +36,16 @@ window.BKN = window.BKN || {};
     : { fetch: fetch };
 
   let status = 'idle';   // off | idle | syncing | ok | err
+  let lastErr = '';      // 最近一次失败原因（状态条点击时提示用）
   const statusCbs = [];
-  function setStatus(s) {
+  function setStatus(s, why) {
     status = s;
+    if (s === 'err' && why) lastErr = String(why);
+    if (s === 'ok') lastErr = '';
     statusCbs.forEach(fn => { try { fn(s); } catch (e) {} });
   }
   function onStatus(fn) { statusCbs.push(fn); fn(status); }
+  function lastError() { return lastErr; }
 
   /* ---------------- 令牌 ----------------
      解析顺序：
@@ -83,10 +87,17 @@ window.BKN = window.BKN || {};
       }
     }, opt || {});
     const res = await net.fetch('https://api.github.com/gists' + path, o);
-    if (res.status === 401) { setStatus('err'); throw new Error('令牌无效（401）'); }
-    if (res.status === 403) { setStatus('err'); throw new Error('无 gist 权限或被限流（403）'); }
-    if (res.status === 404) throw new Error('gist 不存在（404）');
-    if (!res.ok) throw new Error('Gist API ' + res.status);
+    if (res.status === 401) {
+      const m = '登录已失效（401）：请重新用 GitHub 登录，或在设置里填写含 gist 权限的令牌';
+      setStatus('err', m); throw new Error(m);
+    }
+    if (res.status === 403) {
+      // 最常见的原因：授权时没申请 gist 域（旧版 OAuth 只申请了 public_repo）
+      const m = '账号缺少 gist 权限（403）：请退出后用 GitHub 重新登录并同意 gist，或在设置里填写含 gist 的令牌';
+      setStatus('err', m); throw new Error(m);
+    }
+    if (res.status === 404) { const m = 'Gist 不存在（404）'; setStatus('err', m); throw new Error(m); }
+    if (!res.ok) { const m = 'Gist API ' + res.status; setStatus('err', m); throw new Error(m); }
     return res.json();
   }
 
@@ -150,7 +161,7 @@ window.BKN = window.BKN || {};
       return true;
     } catch (e) {
       if (e.message !== 'no-token') console.warn('[gist] push', book.id, e.message);
-      setStatus('err');
+      setStatus('err', e.message === 'no-token' ? '未登录：请先用 GitHub 登录或在设置里填写令牌' : e.message);
       return false;
     }
   }
@@ -188,7 +199,7 @@ window.BKN = window.BKN || {};
       const g = await gapi('/' + gid);
       files = g.files || {};
     } catch (e) {
-      setStatus('err');
+      setStatus('err', e.message);
       return out;
     }
     for (const name of Object.keys(files)) {
@@ -258,7 +269,7 @@ window.BKN = window.BKN || {};
         })
       });
       return true;
-    } catch (e) { setStatus('err'); return false; }
+    } catch (e) { setStatus('err', e.message); return false; }
   }
   async function pullProgress() {
     await ensureToken();
@@ -328,7 +339,7 @@ window.BKN = window.BKN || {};
 
   B.gist = { enabled, ensureGist, syncBook, pullAll, pushProgress, pullProgress,
              removeBook, onBookSaved, syncNow, askConflict, token, setToken, clearToken,
-             onStatus, get status() { return status; }, STATUS_LABEL: {
+             onStatus, lastError, get status() { return status; }, STATUS_LABEL: {
                off: '未启用', idle: '未同步', syncing: '同步中…', ok: '已同步', err: '同步失败'
              } };
 })(window.BKN);

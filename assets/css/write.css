@@ -267,7 +267,7 @@ body.focus .focus-exit { display: inline-flex; }
 .focus-exit:hover { background: var(--line); }
 
 /* ---------------- Markdown 渲染（预览 / 阅读共用） ---------------- */
-.md-body { font-family: var(--serif); color: var(--ink); }
+.md-body { font-family: var(--ed-ff, var(--serif)); color: var(--ink); }
 .md-body > *:first-child { margin-top: 0; }
 .md-body p { margin: 0 0 1.1em; line-height: inherit; }
 .md-body h1, .md-body h2, .md-body h3, .md-body h4 {

@@ -978,6 +978,8 @@
       B.gist.onStatus(s => { els.gistState.textContent = label(s); els.gistState.style.color = s === 'err' ? 'var(--err)' : s === 'ok' ? 'var(--ok)' : ''; });
       els.gistState.addEventListener('click', async () => {
         await flushSave();
+        // 失败时把原因说清楚（只显示「同步失败」用户无从下手）
+        if (B.gist.status === 'err') toast(B.gist.lastError() || '上次同步失败，正在重试…', 'err');
         B.gist.syncNow(S.book, B.gist.askConflict);
       });
     }
