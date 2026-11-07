@@ -1,7 +1,7 @@
 {
   "format": "bookblacknet.index",
   "v": 1,
-  "updatedAt": "2026-11-07T11:39:09.646Z",
+  "updatedAt": "2026-11-07T11:41:03.592Z",
   "books": [
     {
       "id": "bk_mw66s4zj1v4rq8",
@@ -10,6 +10,7 @@
       "intro": "[站长亲笔]一段关于两个初中生的故事。",
       "category": "R18G",
       "tags": [
+        "R18",
         "言情",
         "穿越"
       ],
@@ -23,8 +24,8 @@
       },
       "chapters": 1,
       "words": 229,
-      "createdAt": "2026-11-07T11:39:08.419Z",
-      "updatedAt": "2026-11-07T11:39:08.419Z",
+      "createdAt": "2026-11-07T11:41:02.261Z",
+      "updatedAt": "2026-11-07T11:41:02.261Z",
       "account": "Chengxidaxia",
       "file": "bk_mw66s4zj1v4rq8.book",
       "chunks": 1
