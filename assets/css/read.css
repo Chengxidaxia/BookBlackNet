@@ -58,6 +58,15 @@ body.reading[data-theme="night"] .reader-bar { background: rgba(20, 21, 26, .86)
 }
 .reader-bar.solid { border-bottom-color: var(--line); }
 .reader-bar.hide { transform: translateY(-100%); }
+
+/* 「排版」按钮：Aa 单元素图标。.icon-btn 是 grid 容器，两个 span 会被拆成两行
+   （大写 A 一行、小写 a 一行），所以必须合成一个 flex 子项 */
+.ico-aa {
+  display: flex; align-items: baseline; gap: 1px;
+  font-family: var(--serif); line-height: 1; color: currentColor;
+}
+.ico-aa b { font-size: 15px; font-weight: 600; }
+.ico-aa i { font-size: 10px; font-style: normal; opacity: .85; }
 .rb-title {
   font-family: var(--serif); font-size: 14.5px; color: var(--ink-2);
   max-width: 34vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
