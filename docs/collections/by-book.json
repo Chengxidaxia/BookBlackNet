@@ -1,0 +1,19 @@
+{
+  "format": "bookblacknet.collections.bybook",
+  "v": 1,
+  "updatedAt": "2026-11-07T13:56:42.475Z",
+  "books": {
+    "bk_sample_longnight": [
+      "cl_mw66rv0bh2w9"
+    ],
+    "bk_sample_bookshop": [
+      "cl_mw66rv0bh2w9"
+    ],
+    "bk_sample_starmap": [
+      "cl_mw66rv0bh2w9"
+    ],
+    "bk_mw66s4zj1v4rq8": [
+      "cl_mw6gbugho06d"
+    ]
+  }
+}
