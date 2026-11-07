@@ -1,8 +1,18 @@
 {
   "format": "bookblacknet.collections",
   "v": 1,
-  "updatedAt": "2026-11-07T09:13:40.645Z",
+  "updatedAt": "2026-11-07T13:41:09.667Z",
   "items": [
+    {
+      "id": "cl_mw6gbugho06d",
+      "title": "ClickToInputText",
+      "desc": "[站长亲笔]【点击输入文本】作品集，男主林墨，女主林晚。",
+      "account": "Chengxidaxia",
+      "author": "城西大侠",
+      "cover": null,
+      "count": 1,
+      "updatedAt": "2026-11-07T13:41:08.465Z"
+    },
     {
       "id": "cl_mw66rv0bh2w9",
       "title": "Example",
