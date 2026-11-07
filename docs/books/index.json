@@ -1,8 +1,34 @@
 {
   "format": "bookblacknet.index",
   "v": 1,
-  "updatedAt": "2026-11-07T11:36:42.455Z",
+  "updatedAt": "2026-11-07T11:39:09.646Z",
   "books": [
+    {
+      "id": "bk_mw66s4zj1v4rq8",
+      "title": "Please Input TEXT",
+      "author": "cxdx",
+      "intro": "[站长亲笔]一段关于两个初中生的故事。",
+      "category": "R18G",
+      "tags": [
+        "言情",
+        "穿越"
+      ],
+      "status": "ongoing",
+      "visibility": "public",
+      "cover": {
+        "type": "letter",
+        "from": "#2f4f4a",
+        "to": "#152a26",
+        "text": "P"
+      },
+      "chapters": 1,
+      "words": 229,
+      "createdAt": "2026-11-07T11:39:08.419Z",
+      "updatedAt": "2026-11-07T11:39:08.419Z",
+      "account": "Chengxidaxia",
+      "file": "bk_mw66s4zj1v4rq8.book",
+      "chunks": 1
+    },
     {
       "id": "bk_sample_starmap",
       "title": "星图之外",
