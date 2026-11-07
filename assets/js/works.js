@@ -263,9 +263,16 @@
   }
 
   /* ---------------- 装载 ---------------- */
+  // load() 里有多个 await，若 boot() 被重复触发（例如登录后 bbn:account 事件），
+  // 两次装载会交错 append 到同一批容器里，页面上就会出现「两份」。
+  // 用序号守卫：只有最后一次装载允许继续往下写 DOM。
+  let loadSeq = 0;
+
   async function load() {
     if (!me) return;
     const uid = login();
+    const seq = ++loadSeq;
+    const stale = () => seq !== loadSeq;
 
     els.listPub.innerHTML = '';
     els.listDraft.innerHTML = '';
@@ -278,6 +285,7 @@
       const res = await api.loadIndex({ stamp: api.stamp() });
       books = res.books || [];
     } catch (e) { books = []; }
+    if (stale()) return;
 
     const mine = books.filter((b) => b && String(b.account || '').toLowerCase() === uid && uid);
     const legacy = books.filter((b) => b && !b.account);
@@ -293,6 +301,7 @@
     // 云端草稿
     let drafts = [];
     try { drafts = await B.cloud.works.list(); } catch (e) { drafts = []; }
+    if (stale()) return;
     drafts.forEach((d) => els.listDraft.appendChild(draftCard(d)));
     els.cntDraft.textContent = String(drafts.length);
     if (!drafts.length) {
@@ -305,6 +314,7 @@
     try {
       cols = (await B.cloud.collections.list()).filter((c) => String(c.account || '').toLowerCase() === uid);
     } catch (e) { cols = []; }
+    if (stale()) return;
     cols.forEach((c) => els.listCol.appendChild(colCard(c)));
     els.cntCol.textContent = String(cols.length);
     if (!cols.length) {
