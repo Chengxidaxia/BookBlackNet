@@ -33,7 +33,12 @@ window.BKN = window.BKN || {};
     if (opt.actions && opt.actions.length) {
       const foot = el('div.modal-foot');
       opt.actions.forEach(a => {
-        const b = el('button.btn' + (a.cls ? '.' + a.cls.replace(/\s+/g, '.') : ''), { text: a.label });
+        // cls 里的 primary / danger 是语义记号，要映射成真正的类名 .btn-primary / .btn-danger
+        // （CSS 里没有 .btn.primary，直接拼会得到毫无样式的白按钮）
+        const cls = String(a.cls || '').trim().split(/\s+/).filter(Boolean)
+          .map(t => (t === 'primary' ? 'btn-primary' : t === 'danger' ? 'btn-danger' : t))
+          .join('.');
+        const b = el('button.btn' + (cls ? '.' + cls : ''), a.html ? { html: a.html } : { text: a.label });
         b.addEventListener('click', () => a.onClick && a.onClick({ close, btn: b }));
         foot.appendChild(b);
       });

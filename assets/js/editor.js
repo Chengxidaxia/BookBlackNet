@@ -844,7 +844,9 @@
           }
         },
         {
-          label: '发布', cls: 'primary', onClick: async ({ btn }) => {
+          label: '发布', cls: 'primary btn-pub',
+          html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg><span>发布</span>',
+          onClick: async ({ btn }) => {
             if (modeSel.value === 'github') {
               const t = tokenInput.value.trim();
               if (t && t.indexOf('•') < 0) api.auth.set(t);

@@ -203,6 +203,24 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 0; }
 .btn-danger { color: var(--err); border-color: #e8cfcb; background: #fdf4f3; }
 .btn-danger:hover { background: #fbe9e7; border-color: #dcb1aa; }
 
+/* 弹窗里的最终确认动作（发布 / 上传）：比常规主按钮更大、更亮，带外发光，
+   在一排按钮里第一眼就能看到。必须与 .btn-primary 同用。 */
+.btn-pub {
+  height: 42px; padding: 0 26px; border-radius: 10px;
+  font-size: 14.5px; font-weight: 600; letter-spacing: .03em;
+  background: linear-gradient(180deg, #b8492f 0%, var(--accent) 52%, var(--accent-2) 100%);
+  box-shadow: 0 2px 4px rgba(124, 43, 32, .26), 0 10px 22px rgba(124, 43, 32, .24),
+              0 0 0 3px rgba(156, 58, 44, .13);
+}
+.btn-pub:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(124, 43, 32, .3), 0 14px 30px rgba(124, 43, 32, .28),
+              0 0 0 3px rgba(156, 58, 44, .2);
+}
+.btn-pub:active { transform: translateY(1px); }
+.btn-pub svg { width: 15px; height: 15px; }
+.btn-pub span { display: inline-block; }
+
 /* ---------- 表单 ---------- */
 .field { display: flex; flex-direction: column; gap: 6px; }
 .label { font-size: 12.5px; color: var(--ink-3); font-weight: 500; letter-spacing: .02em; }

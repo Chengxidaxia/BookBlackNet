@@ -269,7 +269,9 @@ body.focus .focus-exit { display: inline-flex; }
 /* ---------------- Markdown 渲染（预览 / 阅读共用） ---------------- */
 .md-body { font-family: var(--ed-ff, var(--serif)); color: var(--ink); }
 .md-body > *:first-child { margin-top: 0; }
-.md-body p { margin: 0 0 1.1em; line-height: inherit; }
+.md-body p { margin: 0 0 1.1em; line-height: inherit; text-indent: 2em; }
+/* 与阅读器一致：引用块、图片段、列表内段落不缩进 */
+.md-body blockquote p, .md-body .md-figure, .md-body li p { text-indent: 0; }
 .md-body h1, .md-body h2, .md-body h3, .md-body h4 {
   margin: 1.8em 0 .7em; line-height: 1.4; letter-spacing: .02em;
 }
@@ -399,6 +401,14 @@ body.gate-locked > :not(.login-gate) { filter: blur(6px); pointer-events: none; 
 .vd-host .vditor-toolbar__item button { color: var(--ink-3); }
 .vd-host .vditor-toolbar__item button:hover { color: var(--ink); background: var(--wash); }
 .vd-host .vditor-toolbar__item button.vditor-menu--current { color: var(--accent); }
+
+/* 编辑器内与阅读器同款首行缩进（Vditor 自身不带 text-indent）。
+   只作用于正文段落，引用块 / 列表项 / 代码块里的段落保持顶格。 */
+.vd-host .vditor-reset p { text-indent: 2em; }
+.vd-host .vditor-reset blockquote p,
+.vd-host .vditor-reset li p,
+.vd-host .vditor-reset .vditor-li p,
+.vd-host .vditor-reset pre p { text-indent: 0; }
 .vd-host .vditor-wysiwyg pre.vditor-reset,
 .vd-host .vditor-ir pre.vditor-reset,
 .vd-host .vditor-sv pre.vditor-reset { background: transparent; }
