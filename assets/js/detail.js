@@ -146,6 +146,169 @@ window.BKN = window.BKN || {};
 
     state.remove();
     wrap.appendChild(info);
+
+    // 目录放在信息区下方（不阻塞主信息渲染：先画骨架，再去取正文清单）
+    renderChapters(entry);
+  }
+
+  /* ============================================================
+     目录
+     ------------------------------------------------------------
+     索引里只有「章节数」，标题必须解包 .book 才拿得到，所以这里
+     单独异步取一次（失败不影响上面的信息区）。
+     20 章一页；网格列数固定，保证每行章数一致。
+     ============================================================ */
+  const PER_PAGE = 20;
+
+  /** 目录标题缓存：同一本书同一次会话只解包一次（键带 updatedAt，书更新后自动失效） */
+  function tocKey(entry) {
+    return 'bbn.toc.' + entry.id + '.' + String(entry.updatedAt || entry.createdAt || '');
+  }
+  function tocGet(entry) {
+    try {
+      const v = sessionStorage.getItem(tocKey(entry));
+      const j = v ? JSON.parse(v) : null;
+      return Array.isArray(j) ? j : null;
+    } catch (e) { return null; }
+  }
+  function tocSet(entry, titles) {
+    try { sessionStorage.setItem(tocKey(entry), JSON.stringify(titles)); } catch (e) {}
+  }
+
+  function lastReadIndex(id) {
+    const p = LS.get('bbn.progress.' + id, null);
+    if (p && typeof p.c === 'number' && p.c >= 0) return p.c;
+    return -1;
+  }
+
+  function renderChapters(entry) {
+    const sec = el('section.dt-chaps', { id: 'dt-chaps' });
+    const count = el('span.dtc-count', { text: '' });
+    sec.appendChild(el('div.dtc-head',
+      el('h2.dtc-title', { text: '目录' }),
+      count
+    ));
+    const body = el('div.dtc-body',
+      el('div.dtc-tip', el('span.spinner'), el('span', { text: '正在读取章节目录…' }))
+    );
+    sec.appendChild(body);
+    wrap.appendChild(sec);
+
+    if (entry.visibility === 'private') {
+      body.innerHTML = '';
+      body.appendChild(el('div.dtc-tip',
+        el('span', { text: '这是一本私密作品，目录需要在阅读页输入口令后查看。' }),
+        el('a.btn.btn-sm', { href: 'read.html?id=' + encodeURIComponent(entry.id), text: '去解锁' })
+      ));
+      count.textContent = entry.chapters ? num(entry.chapters) + ' 章' : '';
+      return;
+    }
+
+    (async () => {
+      let titles = tocGet(entry);
+      if (!titles) {
+        try {
+          const text = await B.api.fetchBook(entry.id);
+          const raw = B.util.safeJSON(text, null);
+          if (raw && raw.crypto && raw.crypto.wrap === 'pass') {
+            throw new Error('pass');
+          }
+          const data = await B.crypto.unpack(text, { secret: CFG.SITE_KEY });
+          titles = (data.chapters || []).map(c => c.title || '');
+          tocSet(entry, titles);
+        } catch (e) {
+          body.innerHTML = '';
+          const locked = e && e.message === 'pass';
+          body.appendChild(el('div.dtc-tip',
+            el('span', { text: locked ? '这本书已加密，目录需要在阅读页输入口令后查看。' : '章节目录暂时读不出来（' + ((e && e.message) || '未知错误') + '）。' }),
+            el('a.btn.btn-sm', { href: 'read.html?id=' + encodeURIComponent(entry.id), text: '打开阅读页' })
+          ));
+          count.textContent = entry.chapters ? num(entry.chapters) + ' 章' : '';
+          return;
+        }
+      }
+
+      const chapters = titles.map((t, i) => ({ title: t || ('第 ' + (i + 1) + ' 章') }));
+      if (!chapters.length) {
+        body.innerHTML = '';
+        body.appendChild(el('div.dtc-tip', el('span', { text: '这本书还没有章节。' })));
+        count.textContent = '';
+        return;
+      }
+
+      const mark = lastReadIndex(entry.id);
+      const pages = Math.ceil(chapters.length / PER_PAGE);
+      // 默认落在「上次读到」那一页；没读过就第一页
+      let page = mark >= 0 ? Math.floor(mark / PER_PAGE) : 0;
+      page = Math.max(0, Math.min(pages - 1, page));
+
+      count.textContent = chapters.length + ' 章' + (pages > 1 ? ' · 共 ' + pages + ' 页' : '');
+
+      const grid = el('div.dtc-grid');
+      const pager = el('div.dtc-pager');
+      body.innerHTML = '';
+      body.appendChild(grid);
+      body.appendChild(pager);
+
+      function drawPage(p) {
+        page = p;
+        grid.innerHTML = '';
+        const from = page * PER_PAGE;
+        const slice = chapters.slice(from, from + PER_PAGE);
+        slice.forEach((c, i) => {
+          const idx = from + i;
+          const isMark = idx === mark;
+          const a = el('a.dtc-item' + (isMark ? '.is-mark' : ''), {
+            href: 'read.html?id=' + encodeURIComponent(entry.id) + '&c=' + (idx + 1),
+            title: c.title || ('第 ' + (idx + 1) + ' 章'),
+            'data-i': String(idx + 1)
+          },
+            el('span.dtc-no', { text: String(idx + 1).padStart(2, '0') }),
+            el('span.dtc-nm', { text: c.title || ('第 ' + (idx + 1) + ' 章') }),
+            isMark ? el('span.dtc-flag', { text: '读到这里' }) : null
+          );
+          grid.appendChild(a);
+        });
+
+        // —— 分页（只有一页时不显示） ——
+        pager.innerHTML = '';
+        if (pages <= 1) return;
+
+        const mkBtn = (label, to, opt) => {
+          const b = el('button.dtc-pg', { type: 'button', text: label });
+          const o = opt || {};
+          if (o.on) b.classList.add('on');
+          if (o.disabled) b.disabled = true;
+          if (!o.disabled) b.addEventListener('click', () => {
+            drawPage(to);
+            const top = sec.getBoundingClientRect().top + window.scrollY - 76;
+            window.scrollTo({ top: top, behavior: 'smooth' });
+          });
+          return b;
+        };
+        pager.appendChild(mkBtn('‹', page - 1, { disabled: page === 0 }));
+        pageNums(pages, page).forEach(n => {
+          if (n === '…') pager.appendChild(el('span.dtc-pg-dots', { text: '…' }));
+          else pager.appendChild(mkBtn(String(n + 1), n, { on: n === page }));
+        });
+        pager.appendChild(mkBtn('›', page + 1, { disabled: page === pages - 1 }));
+      }
+
+      drawPage(page);
+    })();
+  }
+
+  /** 页码序列：页数多时首尾固定 + 当前页前后各 1，中间用 … 省略 */
+  function pageNums(pages, cur) {
+    if (pages <= 7) return Array.from({ length: pages }, (_, i) => i);
+    const set = new Set([0, pages - 1, cur, cur - 1, cur + 1]);
+    const list = [...set].filter(n => n >= 0 && n < pages).sort((a, b) => a - b);
+    const out = [];
+    list.forEach((n, i) => {
+      if (i && n - list[i - 1] > 1) out.push('…');
+      out.push(n);
+    });
+    return out;
   }
 
   async function boot() {

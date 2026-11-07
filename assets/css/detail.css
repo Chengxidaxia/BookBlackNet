@@ -140,3 +140,162 @@
   border-color: var(--accent);
   background: var(--accent-soft);
 }
+
+/* ============================================================
+   目录（book.html 底部）
+   ------------------------------------------------------------
+   列数固定为 5 / 4 / 2，三者都能整除每页 20 章，所以每行章数
+   一致、且除最后一行外每行都是满的。
+   ============================================================ */
+.dt-chaps {
+  margin-top: 56px;
+  padding-top: 28px;
+  border-top: 1px solid var(--line, rgba(0, 0, 0, .1));
+}
+
+.dtc-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.dtc-title {
+  margin: 0;
+  font-family: var(--serif, serif);
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: .04em;
+}
+.dtc-count {
+  font-size: 12.5px;
+  color: var(--ink-3, #8a8378);
+}
+.dtc-count:empty { display: none; }
+
+.dtc-tip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 18px 0;
+  font-size: 13.5px;
+  color: var(--ink-3, #8a8378);
+}
+
+/* -------- 网格 -------- */
+.dtc-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.dtc-item {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  padding: 9px 11px;
+  border: 1px solid var(--line, rgba(0, 0, 0, .1));
+  border-radius: 9px;
+  background: var(--card, rgba(0, 0, 0, .02));
+  color: var(--ink, #2b2622);
+  text-decoration: none;
+  font-size: 13.5px;
+  line-height: 1.4;
+  transition: border-color .15s, background .15s, color .15s, transform .12s;
+}
+.dtc-item:hover {
+  border-color: var(--line-2, rgba(0, 0, 0, .18));
+  background: var(--paper-2, rgba(0, 0, 0, .04));
+  color: var(--accent);
+  transform: translateY(-1px);
+}
+.dtc-no {
+  flex-shrink: 0;
+  font-family: var(--mono, monospace);
+  font-size: 11.5px;
+  color: var(--ink-4, #b1a288);
+}
+.dtc-nm {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 上次读到的那一章 */
+.dtc-item.is-mark {
+  border-color: var(--accent);
+  background: var(--accent-soft, #f8ebe7);
+  color: var(--accent);
+  font-weight: 500;
+}
+.dtc-item.is-mark .dtc-no { color: var(--accent); opacity: .75; }
+.dtc-item.is-mark::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 50%;
+  width: 3px; height: 16px;
+  margin-top: -8px;
+  border-radius: 0 3px 3px 0;
+  background: var(--accent);
+}
+.dtc-flag {
+  flex-shrink: 0;
+  font-size: 10.5px;
+  line-height: 1;
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: var(--accent);
+  color: #fff;
+  white-space: nowrap;
+}
+
+/* -------- 分页 -------- */
+.dtc-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 22px;
+  flex-wrap: wrap;
+}
+.dtc-pager:empty { display: none; }
+
+.dtc-pg {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 9px;
+  border: 1px solid var(--line, rgba(0, 0, 0, .1));
+  border-radius: 8px;
+  background: var(--card, rgba(0, 0, 0, .02));
+  color: var(--ink-2, #4a423c);
+  font-size: 13px;
+  font-family: var(--mono, monospace);
+  cursor: pointer;
+  transition: border-color .15s, background .15s, color .15s;
+}
+.dtc-pg:hover:not(:disabled) {
+  border-color: var(--line-2, rgba(0, 0, 0, .18));
+  color: var(--accent);
+}
+.dtc-pg.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+.dtc-pg[disabled] { opacity: .38; cursor: default; }
+.dtc-pg-dots { color: var(--ink-4, #b1a288); font-size: 13px; padding: 0 2px; }
+
+@media (max-width: 1199px) {
+  .dtc-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (max-width: 767px) {
+  .dt-chaps { margin-top: 40px; padding-top: 22px; }
+  .dtc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+  .dtc-item { padding: 8px 9px; font-size: 12.5px; }
+  .dtc-flag { display: none; }   /* 窄屏靠左侧色条 + 高亮，不再塞文字 */
+}
