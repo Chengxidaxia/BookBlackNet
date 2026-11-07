@@ -11,6 +11,8 @@
   const { el, toast, words, num, dateStr, debounce, safeJSON } = util;
   const { dialog, confirmBox, promptDialog } = B.ui;
   const CFG = window.BOOK || {};
+  // 标签上限（config.js 的 MAX_TAGS，默认 12）—— 多处要用，收成一个函数免得漏改
+  const MAX_TAGS = () => (+CFG.MAX_TAGS || 12);
 
   /* ---------------- DOM ---------------- */
   const els = {};
@@ -606,7 +608,7 @@
         el('option', { value: 'ongoing', text: '连载中' }),
         el('option', { value: 'done', text: '已完结' })
       ),
-      tags: el('input.input', { value: (m.tags || []).join('，'), placeholder: '用逗号分隔，最多 6 个' }),
+      tags: el('input.input', { value: (m.tags || []).join('，'), placeholder: '用逗号分隔，最多 ' + MAX_TAGS() + ' 个' }),
       intro: el('textarea.textarea', { rows: '4', maxlength: '500', placeholder: '一段能让人想点开的简介' }),
       private: el('input', { type: 'checkbox', checked: m.visibility === 'private' })
     };
@@ -699,7 +701,7 @@
             m.author = f.author.value.trim();
             m.category = f.category.value;
             m.status = f.status.value;
-            m.tags = f.tags.value.split(/[,，\s]+/).map(s => s.trim()).filter(Boolean).slice(0, 6);
+            m.tags = f.tags.value.split(/[,，\s]+/).map(s => s.trim()).filter(Boolean).slice(0, MAX_TAGS());
             m.intro = f.intro.value.trim();
             m.visibility = f.private.checked ? 'private' : 'public';
             if (m.author) { try { localStorage.setItem('bbn.author', JSON.stringify(m.author)); } catch (e) {} }

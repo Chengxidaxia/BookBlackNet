@@ -41,6 +41,8 @@ function splitText(str, max) {
   return out.length ? out : [''];
 }
 
+const MAX_TAGS = 12;                      // 标签上限，与 assets/js/config.js 的 MAX_TAGS 保持一致
+
 function cleanMeta(m, id) {
   const src = m || {};
   return {
@@ -49,7 +51,7 @@ function cleanMeta(m, id) {
     author: String(src.author || '').slice(0, 30),
     intro: String(src.intro || '').slice(0, 500),
     category: String(src.category || '').slice(0, 20),
-    tags: Array.isArray(src.tags) ? src.tags.filter((t) => typeof t === 'string').slice(0, 6) : [],
+    tags: Array.isArray(src.tags) ? src.tags.filter((t) => typeof t === 'string').slice(0, MAX_TAGS) : [],
     status: src.status === 'done' ? 'done' : 'ongoing',
     visibility: src.visibility === 'private' ? 'private' : 'public',
     cover: src.cover && typeof src.cover === 'object' ? src.cover : null,

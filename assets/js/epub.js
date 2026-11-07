@@ -19,6 +19,8 @@
   const md = root.md;
   const CV = root.convert;
   const CFG = (typeof window !== 'undefined' && window.BOOK) || {};   // 站点配置挂在 window，不在 BKN 上
+  // 标签上限（config.js 的 MAX_TAGS，默认 12）
+  const MAX_TAGS = () => (+CFG.MAX_TAGS || 12);
 
   if (!util || !crypto_ || !md || !CV) {
     console.error('epub: 依赖缺失（需要 util / crypto / md / convert）');
@@ -307,7 +309,7 @@
     const bookTitle = (dcAll(odoc, 'title')[0] || file.name.replace(/\.epub$/i, '')).trim();
     const bookAuthor = (dcAll(odoc, 'creator')[0] || '佚名').trim();
     const bookIntro = (dcAll(odoc, 'description')[0] || '').trim();
-    const subjects = dcAll(odoc, 'subject').slice(0, 6);
+    const subjects = dcAll(odoc, 'subject').slice(0, MAX_TAGS());
 
     /* --- 3) manifest / spine --- */
     const items = tags(odoc, 'item').map(el => ({
@@ -587,7 +589,7 @@
     const bookTitle = String(meta.title || '未命名作品');
     const author = String(meta.author || '佚名');
     const intro = String(meta.intro || '');
-    const tags = Array.isArray(meta.tags) ? meta.tags.filter(Boolean).slice(0, 6) : [];
+    const tags = Array.isArray(meta.tags) ? meta.tags.filter(Boolean).slice(0, MAX_TAGS()) : [];
 
     const chapters = (data.chapters || []).filter(c => String(c.content || '').trim() || c.title);
     if (!chapters.length) throw new Error('这本书没有任何章节内容，无法生成 EPUB');

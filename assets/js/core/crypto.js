@@ -232,7 +232,9 @@ window.BKN = window.BKN || {};
   function normalizeMeta(m, book) {
     const src = m || {};
     const now = new Date().toISOString();
-    const tags = Array.isArray(src.tags) ? src.tags.filter(Boolean).slice(0, 6) : [];
+    // 标签上限统一读配置（config.js 的 MAX_TAGS，默认 12）
+    const maxTags = (window.BOOK && +window.BOOK.MAX_TAGS) || 12;
+    const tags = Array.isArray(src.tags) ? src.tags.filter(Boolean).slice(0, maxTags) : [];
     return {
       id: (src.id || book.id || B.util.uid('bk_')).replace(/[^\w-]/g, ''),
       title: (src.title || '未命名作品').trim().slice(0, 60),
@@ -259,7 +261,9 @@ window.BKN = window.BKN || {};
       author: m.author || '佚名',
       intro: m.intro || '',
       category: m.category || '其他',
-      tags: m.tags || [],
+      // 与 normalizeMeta 同一上限：索引条目这里也截一次，
+      // 否则「导入 .bookp → GitHub 直连发布」会绕过 editor 的 slice 写超量标签
+      tags: Array.isArray(m.tags) ? m.tags.filter(Boolean).slice(0, (window.BOOK && +window.BOOK.MAX_TAGS) || 12) : [],
       status: m.status || 'ongoing',
       visibility: m.visibility || 'public',
       cover: coverOf(m),

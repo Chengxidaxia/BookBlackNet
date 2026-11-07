@@ -26,6 +26,7 @@ import {
 } from '../lib/gh-publish.mjs';
 
 const MAX_PART_BYTES = 3 * 1024 * 1024;   // 单片上限（base64 后 ~4MB，留余量给 4.5MB body 限制）
+const MAX_TAGS = 12;                      // 标签上限，与 assets/js/config.js 的 MAX_TAGS 保持一致
 
 const REPO = process.env.BOOKS_REPO || 'Chengxidaxia/BookBlackNet';
 const BRANCH = process.env.BOOKS_BRANCH || 'main';
@@ -42,7 +43,7 @@ function cleanEntry(e, login, file, total) {
     author: String(src.author || src.account || login).slice(0, 30),
     intro: String(src.intro || '').slice(0, 500),
     category: String(src.category || '其他').slice(0, 20),
-    tags: Array.isArray(src.tags) ? src.tags.filter((t) => typeof t === 'string').slice(0, 6) : [],
+    tags: Array.isArray(src.tags) ? src.tags.filter((t) => typeof t === 'string').slice(0, MAX_TAGS) : [],
     status: src.status === 'done' ? 'done' : 'ongoing',
     visibility: src.visibility === 'private' ? 'private' : 'public',
     cover: src.cover && typeof src.cover === 'object' ? src.cover : null,

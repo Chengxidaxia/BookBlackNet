@@ -11,6 +11,8 @@
   const { $, el, toast, esc, words, num, dateStr, safeJSON } = util;
   const { dialog, confirmBox, promptDialog } = B.ui;
   const CFG = window.BOOK || {};
+  // 标签上限（config.js 的 MAX_TAGS，默认 12）
+  const MAX_TAGS = () => (+CFG.MAX_TAGS || 12);
 
   const els = {};
   const IDS = ['shelf-view', 'desk-list', 'shelf-q', 'shelf-cats', 'shelf-status', 'shelf-sort',
@@ -141,7 +143,7 @@
   function editTags(book) {
     const input = el('input.input', {
       value: ((book.meta && book.meta.tags) || []).join('，'),
-      placeholder: '用逗号分隔，最多 6 个'
+      placeholder: '用逗号分隔，最多 ' + MAX_TAGS() + ' 个'
     });
     dialog({
       title: '《' + ((book.meta && book.meta.title) || '未命名') + '》的标签',
@@ -152,7 +154,7 @@
       actions: [
         { label: '取消', onClick: ({ close }) => close() },
         { label: '保存', cls: 'primary', onClick: ({ close }) => {
-          book.meta.tags = input.value.split(/[,，\s]+/).map(s => s.trim()).filter(Boolean).slice(0, 6);
+          book.meta.tags = input.value.split(/[,，\s]+/).map(s => s.trim()).filter(Boolean).slice(0, MAX_TAGS());
           close();
           store.save(book).then(() => { toast('标签已更新', 'ok'); renderShelf(); });
         } }

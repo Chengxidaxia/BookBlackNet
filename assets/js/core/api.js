@@ -233,6 +233,105 @@ window.BKN = window.BKN || {};
     return CFG.BOOKS_DIR + '/' + String(id).replace(/[^\w.-]/g, '') + '.book';
   }
 
+  /* ============================================================
+     作品集反查：这本书被收进了哪些作品集
+     ------------------------------------------------------------
+     两段式，先快后稳：
+     ① by-book.json（服务端在每次保存/删除作品集时增量维护的反查索引）
+        → 只花 1 个请求，读到「文件存在」就以它为准（空数组也算准）。
+     ② 该文件不存在（历史数据 / 服务端尚未写过）→ 退回逐个读每个作品集
+        的 <id>.json 看 bookIds 里有没有本书。集合可能有几百个，所以
+        并发受控（同时 6 个），并把结果缓存到 sessionStorage，
+        键里带集合索引的 updatedAt，索引一变就自动失效。
+     @returns {Promise<Array>} 作品集摘要（index.json 里的条目，含 id/title/count/...）
+     ============================================================ */
+  const COLLECTIONS_DIR = CFG.COLLECTIONS_DIR || 'docs/collections';
+  const POOL = 6;
+
+  function collIndexUpdated(items) {
+    // 没有全局时间戳时，用「条目数 + 各条 updatedAt 首尾」当版本指纹
+    if (!items.length) return '0';
+    const stamps = items.map(c => String((c && c.updatedAt) || '')).sort();
+    return items.length + ':' + stamps[0] + ':' + stamps[stamps.length - 1];
+  }
+
+  async function mapLimit(list, limit, fn) {
+    const out = new Array(list.length);
+    let i = 0;
+    const workers = Array.from({ length: Math.min(limit, list.length) }, async () => {
+      while (i < list.length) {
+        const k = i++;
+        try { out[k] = await fn(list[k], k); } catch (e) { out[k] = null; }
+      }
+    });
+    await Promise.all(workers);
+    return out;
+  }
+
+  async function collectionsOfBook(bookId) {
+    const id = String(bookId || '').replace(/[^\w.-]/g, '');
+    if (!id) return [];
+    const st = stamp();
+
+    // 索引与反查索引**并发**取：两层都要走网络（同源 → CDN → raw），
+    // 串行会白白多等一轮往返。反查索引不存在时 get 会抛错，归一成 null。
+    const [idxHit, bbHit] = await Promise.all([
+      fetchLayer(COLLECTIONS_DIR + '/index.json', st).catch(() => null),
+      fetchLayer(COLLECTIONS_DIR + '/by-book.json', st).catch(() => null),
+    ]);
+    if (!idxHit) return [];
+
+    let items = [];
+    const j0 = B.util.safeJSON(idxHit.txt, null);
+    items = j0 && Array.isArray(j0.items) ? j0.items : (Array.isArray(j0) ? j0 : []);
+    items = items.filter(c => c && c.id);
+    if (!items.length) return [];
+
+    const byId = Object.create(null);
+    items.forEach(c => { byId[c.id] = c; });
+
+    // ① 反查索引（读到就以它为准：空数组表示确实没被任何作品集收录）
+    let ids = null;
+    if (bbHit) {
+      const j = B.util.safeJSON(bbHit.txt, null);
+      if (j && j.books && typeof j.books === 'object' && !Array.isArray(j.books)) {
+        const list = j.books[id];
+        ids = Array.isArray(list) ? list.filter(x => byId[x]) : [];
+      }
+    }                          // bbHit 为 null → 文件不存在，走回退
+
+    // 统一按 index.json 的顺序输出：作品集列表页用什么序，详情页就用什么序，
+    // 不受 by-book.json 内部数组顺序（增量维护时会变）影响
+    const order = (list) => {
+      const set = new Set(list);
+      return items.filter(c => set.has(c.id));
+    };
+
+    if (ids) return order(ids);
+
+    // ② 回退：逐个读（带缓存）
+    const key = 'bbn.collof.' + id + '.' + collIndexUpdated(items);
+    try {
+      const c = sessionStorage.getItem(key);
+      if (c) {
+        const arr = B.util.safeJSON(c, null);
+        if (Array.isArray(arr)) return order(arr);
+      }
+    } catch (e) { /* 隐私模式忽略 */ }
+
+    const found = await mapLimit(items, POOL, async (c) => {
+      try {
+        const r = await fetchLayer(COLLECTIONS_DIR + '/' + encodeURIComponent(c.id) + '.json', st);
+        const j = B.util.safeJSON(r.txt, null);
+        const bookIds = j && Array.isArray(j.bookIds) ? j.bookIds : [];
+        return bookIds.indexOf(id) >= 0 ? c.id : null;
+      } catch (e) { return null; }
+    });
+    const got = found.filter(Boolean);
+    try { sessionStorage.setItem(key, JSON.stringify(got)); } catch (e) {}
+    return order(got);
+  }
+
   /* ---------------- 分块（chunked .book） ----------------
      仓库里每个文件不超过 10MiB（GitHub / Pages / jsDelivr 对单文件都更
      友好）。约定：
@@ -701,7 +800,7 @@ window.BKN = window.BKN || {};
   }
 
   B.api = { loadIndex, fetchBook, bookPath, bookUrl, publish, unpublish,
-            checkToken, auth, resolveToken, utf8ToB64, b64ToUtf8, ghGet, ghPut,
+            collectionsOfBook, checkToken, auth, resolveToken, utf8ToB64, b64ToUtf8, ghGet, ghPut,
             cdnBases, stamp, bustCdn, verOf, net,
             utf8Len, makeChunks, CHUNK_MAX };
 })(window.BKN);

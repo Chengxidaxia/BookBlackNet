@@ -153,8 +153,109 @@ window.BKN = window.BKN || {};
     state.remove();
     wrap.appendChild(info);
 
+    // 收录于（作品集）：放在主信息与目录之间；异步、失败不显示
+    renderCollections(entry);
     // 目录放在信息区下方（不阻塞主信息渲染：先画骨架，再去取正文清单）
     renderChapters(entry);
+  }
+
+  /* ============================================================
+     收录于作品集
+     ------------------------------------------------------------
+     只读取一次（api.collectionsOfBook 内部先查服务端维护的反查索引，
+     拿不到才回退逐个读，并缓存），全程不阻塞主信息渲染。
+     数量多时不铺开：默认只显示 3 个 + 「+N」，点「查看全部」开弹窗，
+     弹窗里可搜索、可滚动，避免几十个标签把页面撑开。
+     ============================================================ */
+  const INLINE_MAX = 3;
+
+  function collChip(c) {
+    return el('a.clc-chip', {
+      href: 'collections.html?id=' + encodeURIComponent(c.id),
+      title: (c.title || '未命名作品集') + (c.count ? '（' + c.count + ' 部）' : '')
+    },
+      el('span.clc-dot', { text: (c.title || '集').slice(0, 1) }),
+      el('span.clc-name', { text: c.title || '未命名作品集' }),
+      c.count ? el('span.clc-n', { text: c.count + ' 部' }) : null
+    );
+  }
+
+  function showAllCollections(list) {
+    const keyword = el('input.input', { placeholder: '搜索作品集名称 / 简介', type: 'search' });
+    const counter = el('div.clc-modal-count');
+    const grid = el('div.clc-modal-grid');
+
+    const draw = () => {
+      const kw = keyword.value.trim().toLowerCase();
+      const hit = !kw ? list : list.filter(c =>
+        ((c.title || '') + ' ' + (c.desc || '') + ' ' + (c.author || c.account || '')).toLowerCase().indexOf(kw) >= 0);
+      grid.innerHTML = '';
+      if (!hit.length) {
+        grid.appendChild(el('div.clc-modal-empty', { text: '没有匹配的作品集。' }));
+      } else {
+        hit.forEach(c => {
+          const row = el('a.clc-modal-item', { href: 'collections.html?id=' + encodeURIComponent(c.id) },
+            el('span.clc-dot', { text: (c.title || '集').slice(0, 1) }),
+            el('span.clc-modal-main',
+              el('span.clc-modal-title', { text: c.title || '未命名作品集' }),
+              el('span.clc-modal-desc', { text: c.desc || '（没有写简介）' })
+            ),
+            el('span.clc-n', { text: (c.count || 0) + ' 部' })
+          );
+          grid.appendChild(row);
+        });
+      }
+      counter.textContent = kw
+        ? '匹配 ' + hit.length + ' / ' + list.length + ' 个作品集'
+        : '共 ' + list.length + ' 个作品集';
+    };
+
+    keyword.addEventListener('input', draw);
+    draw();
+
+    B.ui.dialog({
+      title: '收录于 ' + list.length + ' 个作品集',
+      body: el('div.stack.gap-10',
+        keyword,
+        counter,
+        grid
+      ),
+      actions: [{ label: '关闭', onClick: ({ close }) => close() }]
+    });
+    setTimeout(() => keyword.focus(), 80);
+  }
+
+  function renderCollections(entry) {
+    const sec = el('section.dt-coll', { id: 'dt-coll' });
+    sec.appendChild(el('div.dtc-head',
+      el('h2.dtc-title', { text: '收录于' }),
+      el('span.dtc-count', { text: '' })
+    ));
+    const body = el('div.clc-body');
+    sec.appendChild(body);
+    wrap.appendChild(sec);
+
+    (async () => {
+      let list = [];
+      try { list = await B.api.collectionsOfBook(entry.id); } catch (e) { list = []; }
+      if (!list || !list.length) { sec.remove(); return; }   // 没被收录 → 整块不出现
+
+      const head = sec.querySelector('.dtc-count');
+      if (head) head.textContent = list.length + ' 个';
+
+      const shown = list.slice(0, INLINE_MAX);
+      shown.forEach(c => body.appendChild(collChip(c)));
+
+      if (list.length > shown.length) {
+        const more = el('button.clc-more', {
+          type: 'button',
+          text: '+' + (list.length - shown.length)
+        });
+        more.title = '查看全部 ' + list.length + ' 个作品集';
+        more.addEventListener('click', () => showAllCollections(list));
+        body.appendChild(more);
+      }
+    })();
   }
 
   /* ============================================================
