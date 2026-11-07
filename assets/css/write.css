@@ -97,6 +97,7 @@
 
 /* ---------------- 编辑器骨架 ---------------- */
 .editor {
+  --ed-pad: 44px;                 /* 写作区左右留白，标题/正文/编辑器共用 */
   height: calc(100vh - var(--nav-h));
   display: flex; flex-direction: column;
   background: var(--paper);
@@ -201,16 +202,16 @@ body.editing { overflow: hidden; }
 
 .ch-title {
   border: 0; background: transparent; font-family: var(--serif);
-  font-size: 22px; font-weight: 600; padding: 22px 0 4px;
-  width: 100%; max-width: 760px; margin: 0 auto; flex-shrink: 0;
+  font-size: 22px; font-weight: 600; padding: 22px var(--ed-pad) 4px;
+  width: 100%; max-width: none; margin: 0; flex-shrink: 0;
 }
 .ch-title:focus { outline: none; }
 .ch-title::placeholder { color: var(--ink-4); font-weight: 400; }
 
 .ed-text {
-  flex: 1; width: 100%; max-width: 760px; margin: 0 auto;
+  flex: 1; width: 100%; max-width: none; margin: 0;
   border: 0; background: transparent; resize: none; outline: none;
-  padding: 8px 0 60px;
+  padding: 8px var(--ed-pad) 60px;
   font-family: var(--serif); font-size: 17px; line-height: 1.95;
   color: var(--ink); letter-spacing: .01em;
   overflow-y: auto;
@@ -251,8 +252,8 @@ body.focus .ed-head {
 body.focus .ed-head:hover { opacity: 1; }
 body.focus .book-title-input { text-align: center; }
 body.focus .ed-main { background: var(--paper); }
-body.focus .ed-text { font-size: 18.5px; line-height: 2.05; max-width: 720px; padding-top: 4vh; }
-body.focus .ch-title { text-align: center; font-size: 20px; color: var(--ink-3); }
+body.focus .ed-text { font-size: 18.5px; line-height: 2.05; max-width: 760px; margin: 0 auto; padding-top: 4vh; }
+body.focus .ch-title { text-align: center; font-size: 20px; color: var(--ink-3); max-width: 760px; margin: 0 auto; }
 body.focus .ed-foot { background: transparent; border-top-color: transparent; opacity: .35; }
 
 .focus-exit {
@@ -326,8 +327,10 @@ body.focus .focus-exit { display: inline-flex; }
 @media (max-width: 1080px) {
   .ed-chapters { width: 186px; }
   .editor.preview .ed-preview { width: 40%; }
+  .editor { --ed-pad: 30px; }
 }
 @media (max-width: 860px) {
+  .editor { --ed-pad: 18px; }
   #btn-toc-ch { display: grid; }
   .ed-chapters {
     position: absolute; left: 0; top: 0; bottom: 0; z-index: 40;
@@ -367,11 +370,14 @@ body.gate-locked > :not(.login-gate) { filter: blur(6px); pointer-events: none; 
 .login-gate .gate-form .row { flex-wrap: wrap; }
 .login-gate .gate-form .label { color: var(--ink-3); font-size: 12px; }
 
-/* ---------------- Vditor（4.0.1，内置） ---------------- */
+/* ---------------- Vditor（4.0.1，内置） ----------------
+   注意：.vd-host 同时是 Vditor 的根元素（Vditor 会给它加 .vditor 类），
+   它的内联 width 由初始化时的 width 选项决定（editor.js 传 100%）——
+   不要再写 margin:0 auto + width:auto，那会让 flex 子项按内容收缩成窄条。 */
 .vd-host {
-  flex: 1 1 auto; min-height: 0; width: 100%; max-width: 860px;
-  margin: 0 auto; display: flex; flex-direction: column;
-  padding: 4px 0 40px;
+  flex: 1 1 auto; min-height: 0; width: 100%; max-width: none;
+  margin: 0; display: flex; flex-direction: column;
+  padding: 6px var(--ed-pad) 44px;
 }
 .vd-host .vditor {
   flex: 1 1 auto; min-height: 0; border: 0; border-radius: 0; background: transparent;
@@ -379,19 +385,24 @@ body.gate-locked > :not(.login-gate) { filter: blur(6px); pointer-events: none; 
 .vd-host .vditor-reset {
   font-family: var(--serif); font-size: 17px; line-height: 1.95;
   color: var(--ink); letter-spacing: .01em; padding: 0 0 60px;
+  max-width: none;
 }
 .vd-host .vditor-toolbar {
-  border: 0; border-bottom: 1px solid var(--line); background: transparent;
+  border: 0; border-bottom: 1px solid var(--line); background: var(--card);
   padding: 2px 0 6px; margin-bottom: 10px;
 }
 .vd-host .vditor-toolbar__item button { color: var(--ink-3); }
 .vd-host .vditor-toolbar__item button:hover { color: var(--ink); background: var(--wash); }
-.vd-host .vditor-ir pre.vditor-reset { background: transparent; }
+.vd-host .vditor-toolbar__item button.vditor-menu--current { color: var(--accent); }
+.vd-host .vditor-wysiwyg pre.vditor-reset,
+.vd-host .vditor-ir pre.vditor-reset,
+.vd-host .vditor-sv pre.vditor-reset { background: transparent; }
+.vd-host .vditor-wysiwyg .vditor-reset:focus,
 .vd-host .vditor-ir .vditor-reset:focus { outline: none; }
-body.focus .vd-host { max-width: 720px; }
+body.focus .vd-host { max-width: 760px; margin: 0 auto; padding-left: 0; padding-right: 0; }
 body.focus .vd-host .vditor-reset { font-size: 18.5px; line-height: 2.05; }
 body.focus .vd-host .vditor-toolbar { display: none; }
 @media (max-width: 900px) {
-  .vd-host { padding: 0 0 40px; }
+  .vd-host { padding: 0 var(--ed-pad) 40px; }
   .vd-host .vditor-reset { font-size: 16px; }
 }

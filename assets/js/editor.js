@@ -58,6 +58,22 @@
     if (vdReady) vdReady.then(put).catch(() => {}); else put();
   }
 
+  // 工具栏清单：宽屏与主站写稿页（edit.js）完全一致；窄屏收敛成两行，避免工具栏吃掉半屏
+  function toolbarOf(width) {
+    const more = { name: 'more', toolbar: ['both', 'code-theme', 'content-theme', 'export', 'outline', 'preview', 'devtools', 'info', 'help'] };
+    if (width <= 760) {
+      // 手机只留高频项，控制在两行内（其余在「更多」或桌面端）
+      return ['headings', 'bold', 'italic', '|', 'list', 'ordered-list', 'quote', 'link', '|',
+        'undo', 'redo', 'fullscreen', more];
+    }
+    return ['emoji', 'headings', 'bold', 'italic', 'strike', 'link', '|',
+      'list', 'ordered-list', 'check', 'outdent', 'indent', '|',
+      'quote', 'line', 'code', 'inline-code', 'insert-before', 'insert-after', '|',
+      'upload', 'table', '|',
+      'undo', 'redo', '|',
+      'fullscreen', 'edit-mode', more];
+  }
+
   function initVditor() {
     const host = document.getElementById('vditor-host');
     if (!host || typeof window.Vditor === 'undefined') return;   // 降级：保留 textarea
@@ -66,14 +82,30 @@
       try {
         vd = new window.Vditor('vditor-host', {
           cdn: 'vditor/4.0.1',
-          mode: 'ir',
+          // 与主站写稿页（edit.js）保持一致：wysiwyg + ant 图标 + 中文 + 同一套工具栏
+          mode: 'wysiwyg',
+          lang: 'zh_CN',
+          icon: 'ant',
+          width: '100%',        // Vditor 默认 width:auto，配合父级 flex 会塌成内容宽
           height: '100%',
           minHeight: 320,
           value: els.edText.value || '',
           cache: { enable: false },
+          outline: { enable: false },
           placeholder: '从这里开始写。支持 Markdown：## 小标题、**加粗**、> 引用、- 列表。',
-          toolbar: ['headings', 'bold', 'italic', 'strike', '|', 'quote', 'list', 'ordered-list',
-            'check', '|', 'line', 'link', '|', 'undo', 'redo', '|', 'outline', 'fullscreen'],
+          toolbar: toolbarOf(window.innerWidth || 1200),
+          toolbarConfig: { pin: true },
+          upload: {
+            // 复用书阁自己的双通道图床（同源 /api/imgup → CF upload 兜底）
+            handler: (files) => {
+              const f = files && files[0];
+              if (!f) return null;
+              B.upload.uploadImage(f)
+                .then((url) => { try { vd.insertValue('![](' + url + ')'); } catch (e) {} })
+                .catch((e) => toast(e.message || '图片上传失败', 'err'));
+              return null;      // 已自行插入，不让 Vditor 再处理
+            }
+          },
           counter: { enable: true, type: 'markdown' },
           input: (val) => {
             if (vdSyncing) return;
@@ -84,8 +116,9 @@
           },
           after: () => {
             try { vd.setValue(els.edText.value || ''); } catch (e) {}
-            const box = host.querySelector('.vditor');
-            if (box) box.addEventListener('focusin', () => { try { closeToc(); } catch (e) {} });
+            // Vditor 根元素就是 #vditor-host 本身（它会给自己加 .vditor 类），
+            // 不是它的子节点，所以监听要挂在 host 上
+            host.addEventListener('focusin', () => { try { closeToc(); } catch (e) {} });
             resolve();
           }
         });
