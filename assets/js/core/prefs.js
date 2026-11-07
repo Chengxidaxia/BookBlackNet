@@ -99,18 +99,27 @@ window.BKN = window.BKN || {};
   const onChange = fn => listeners.push(fn);
 
   /* ---------------- 编辑器组应用到页面 ---------------- */
+  /* 注意：Vditor 启用后正文由 .vditor-reset 渲染，老 textarea（#ed-text）只是
+     一条隐藏的数据通道 —— 只改它的内联样式等于没改。所以这里同时把三项写进
+     根级 CSS 变量，write.css 里 .vd-host .vditor-reset 直接吃这些变量。 */
   function applyEditor() {
     const size = get('editor.fontSize', 17);
     const lh = get('editor.lineHeight', 1.95);
     const fam = get('editor.fontFamily', 'serif');
+    const ff = fam === 'sans' ? 'var(--sans)' : 'var(--serif)';
+    const root = document.documentElement;
+    root.style.setProperty('--ed-fs', size + 'px');
+    root.style.setProperty('--ed-lh', String(lh));
+    root.style.setProperty('--ed-ff', ff);
+
     const ta = document.getElementById('ed-text');
     if (ta) {
       ta.style.fontSize = size + 'px';
       ta.style.lineHeight = lh;
-      ta.style.fontFamily = fam === 'sans' ? 'var(--sans)' : 'var(--serif)';
+      ta.style.fontFamily = ff;
     }
     const ct = document.getElementById('ch-title');
-    if (ct) ct.style.fontFamily = fam === 'sans' ? 'var(--sans)' : 'var(--serif)';
+    if (ct) ct.style.fontFamily = ff;
     document.body.dataset.uiTheme = get('editor.uiTheme', 'light');
   }
 
