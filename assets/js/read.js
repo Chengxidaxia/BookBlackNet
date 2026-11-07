@@ -12,7 +12,7 @@
   const els = {};
   ['reader-bar', 'rb-title', 'rb-progress', 'btn-toc', 'btn-toc-close', 'btn-font', 'btn-theme',
     'toc', 'toc-mask', 'toc-list', 'toc-count', 'toc-name', 'toc-author', 'toc-cover', 'toc-link',
-    'rd-panel', 'seg-size', 'val-size', 'reader-main', 'reader-state', 'reader-art',
+    'rd-panel', 'seg-size', 'val-size', 'reader-main', 'reader-state', 'reader-art', 'reader-extra',
     'chap-title', 'chap-body', 'chap-nav', 'btn-prev', 'btn-next', 'btn-toc2'
   ].forEach(id => { els[id.replace(/-([a-z])/g, (_, c) => c.toUpperCase())] = document.getElementById(id); });
 
@@ -140,6 +140,79 @@
   /* ============================================================
      渲染
      ============================================================ */
+  /* ============================================================
+     阅读模式（Safari 阅读器 / Firefox 阅读视图 / Edge 沉浸式阅读器）
+     ------------------------------------------------------------
+     这些功能不执行我们的 JS，只在 DOM 上找「语义标签 + schema.org
+     标记 + 足够文本」。所以每次换章都要把 article 的 headline /
+     author / dateModified，以及 head 里的 meta 与 JSON-LD 一起刷新，
+     否则阅读模式里显示的还是上一章甚至初始的标题。
+     ============================================================ */
+  const setAttr = (id, attr, v) => { const n = document.getElementById(id); if (n) n.setAttribute(attr, v == null ? '' : String(v)); };
+
+  function chapterUrl(idx) {
+    const base = location.origin + location.pathname;
+    return base + '?id=' + encodeURIComponent(S.bookId) + (idx ? '&c=' + (idx + 1) : '');
+  }
+
+  function updateArticleMeta() {
+    if (!S.data) return;
+    const m = S.data.meta || {};
+    const title = m.title || '未命名作品';
+    const author = m.author || '佚名';
+    const chap = (S.data.chapters || [])[S.idx] || {};
+    const chapTitle = chap.title || ('第 ' + (S.idx + 1) + ' 章');
+    const url = chapterUrl(S.idx);
+    const updated = m.updatedAt || m.createdAt || '';
+    const intro = m.intro || '';
+
+    // ① article 内的微数据（阅读模式读这些）
+    //    注意：<meta> 的值在 content 属性里，写 textContent 是无效的
+    setAttr('art-book-name', 'content', title);
+    setAttr('art-book-url', 'content', location.origin + location.pathname + '?id=' + encodeURIComponent(S.bookId));
+    setAttr('art-author', 'content', author);
+    setAttr('art-time', 'content', updated);
+    if (els.chapTitle) {
+      els.chapTitle.textContent = chapTitle;      // 顺带保证 h1（阅读模式的标题）是当前章
+    }
+    if (els.readerArt) els.readerArt.setAttribute('aria-label', chapTitle);
+
+    // ② head 里的 meta
+    setAttr('page-author', 'content', author);
+    setAttr('page-desc', 'content', intro || (title + ' · ' + chapTitle));
+    setAttr('page-canonical', 'href', url);
+    setAttr('og-title', 'content', chapTitle + ' · ' + title);
+    setAttr('og-desc', 'content', intro);
+    setAttr('og-url', 'content', url);
+    setAttr('og-pub', 'content', m.createdAt || updated);
+
+    // ③ JSON-LD：Article 属于 Book，章节标题作 headline
+    const ld = document.getElementById('ld-article');
+    if (ld) {
+      ld.textContent = JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        headline: chapTitle,
+        name: chapTitle,
+        inLanguage: 'zh-CN',
+        datePublished: m.createdAt || updated || undefined,
+        dateModified: updated || undefined,
+        wordCount: chap.content ? words(chap.content) : undefined,
+        author: [{ '@type': 'Person', name: author }],
+        publisher: { '@type': 'Organization', name: '群书阁', alternateName: 'BookBlackNet' },
+        mainEntityOfPage: url,
+        isPartOf: {
+          '@type': 'Book',
+          name: title,
+          numberOfPages: (S.data.chapters || []).length,
+          inLanguage: 'zh-CN',
+          author: [{ '@type': 'Person', name: author }],
+          url: location.origin + location.pathname + '?id=' + encodeURIComponent(S.bookId)
+        }
+      });
+    }
+  }
+
   function renderHead() {
     const m = S.data.meta;
     const cov = B.crypto.coverOf(m);
@@ -160,6 +233,7 @@
     document.title = (m.title || '阅读') + ' · BookBlackNet';
     S.baseTitle = m.title || '阅读';
     els.rbTitle.textContent = m.title || '阅读';
+    updateArticleMeta();
   }
 
   function renderChapter(i, restoreRatio) {
@@ -189,6 +263,9 @@
     const q = new URLSearchParams(location.search);
     q.set('c', String(S.idx + 1));
     history.replaceState(null, '', location.pathname + '?' + q.toString());
+
+    // 换章后同步阅读模式的 headline / 作者 / canonical / JSON-LD
+    updateArticleMeta();
 
     if (restoreRatio > 0.02) {
       requestAnimationFrame(() => {
@@ -245,6 +322,7 @@
     els.readerState.innerHTML = '';
     els.readerState.style.display = '';
     els.readerArt.classList.add('hidden');
+    if (els.readerExtra) els.readerExtra.classList.add('hidden');
     if (node) els.readerState.appendChild(node);
   }
 
@@ -321,6 +399,7 @@
 
     els.readerState.style.display = 'none';
     els.readerArt.classList.remove('hidden');
+    if (els.readerExtra) els.readerExtra.classList.remove('hidden');
 
     renderHead();
 

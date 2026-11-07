@@ -82,7 +82,10 @@ window.BKN = window.BKN || {};
     const hasProg = prog && (typeof prog.c === 'number' && prog.c > 0 || prog.ratio > 0.02);
     const readHref = 'read.html?id=' + encodeURIComponent(entry.id) + (hasProg && prog.c ? '&c=' + (prog.c + 1) : '');
 
-    const info = el('div.detail-in',
+    const info = el('div.detail-in', {
+      // schema.org Book：搜索引擎与浏览器（含沉浸式阅读器）都靠它认出这是书目页
+      itemscope: '', itemtype: 'https://schema.org/Book'
+    },
       /* 左：封面 */
       el('div.dt-cover-wrap',
         el('div.dt-cover', { style: coverStyle(cov) },
@@ -93,11 +96,11 @@ window.BKN = window.BKN || {};
       ),
       /* 右：信息 */
       el('div.dt-body',
-        el('h1.dt-title', { text: entry.title || '未命名作品' }),
+        el('h1.dt-title', { text: entry.title || '未命名作品', itemprop: 'name' }),
         el('div.dt-sub',
           (entry.account
-            ? el('a', { href: 'author.html?u=' + encodeURIComponent(entry.account), text: entry.author || entry.account, style: { color: 'inherit', textDecoration: 'underline', textUnderlineOffset: '3px' } })
-            : el('span', { text: entry.author || '佚名' })),
+            ? el('a', { href: 'author.html?u=' + encodeURIComponent(entry.account), text: entry.author || entry.account, itemprop: 'author', style: { color: 'inherit', textDecoration: 'underline', textUnderlineOffset: '3px' } })
+            : el('span', { text: entry.author || '佚名', itemprop: 'author' })),
           el('span.sep', { text: '·' }),
           el('span.dt-status', { text: statusTxt }),
           entry.category ? [el('span.sep', { text: '·' }), el('span', { text: entry.category })] : null
@@ -105,7 +108,10 @@ window.BKN = window.BKN || {};
         el('div.dt-tags',
           (entry.tags || []).map(t => el('span.tag', { text: t }))
         ),
-        el('p.dt-intro', { text: entry.intro || '（作者还没有写简介）' }),
+        el('p.dt-intro', { text: entry.intro || '（作者还没有写简介）', itemprop: 'description' }),
+        // 数值型字段必须放 meta：屏幕上的「1.2 万」不是合法数字，机器读不懂
+        el('meta', { itemprop: 'numberOfPages', content: String(entry.chapters || 0) }),
+        el('meta', { itemprop: 'wordCount', content: String(entry.words || 0) }),
         el('div.dt-stats',
           el('div.dts', { text: num(entry.chapters) }, el('span', { text: '章' })),
           el('div.dts', { text: num(entry.words) }, el('span', { text: '字' })),

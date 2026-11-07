@@ -4,11 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>阅读 · BookBlackNet</title>
-<link rel="canonical" href="https://book.blacknet.cc.cd/read.html">
-<meta property="og:type" content="website">
+<link rel="canonical" id="page-canonical" href="https://book.blacknet.cc.cd/read.html">
+<!-- 阅读模式的「按行」信息：Firefox 阅读视图取 meta author 当署名，Safari 取 og:type -->
+<meta name="author" id="page-author" content="群书阁">
+<meta name="description" id="page-desc" content="群书阁 BookBlackNet —— 在线阅读与写作。">
+<meta name="theme-color" content="#faf7f1">
+<meta property="og:type" content="article">
 <meta property="og:site_name" content="群书阁">
-<meta property="og:title" content="阅读 · BookBlackNet">
-<meta property="og:url" content="https://book.blacknet.cc.cd/read.html">
+<meta property="og:title" id="og-title" content="阅读 · BookBlackNet">
+<meta property="og:description" id="og-desc" content="">
+<meta property="og:url" id="og-url" content="https://book.blacknet.cc.cd/read.html">
+<meta property="article:published_time" id="og-pub" content="">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%239c3a2c'/%3E%3Ctext x='16' y='23' font-size='19' text-anchor='middle' fill='%23fff' font-family='serif'%3E书%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="assets/css/base.css">
 <link rel="stylesheet" href="assets/css/write.css">
@@ -91,19 +97,38 @@
 </div>
 
 <!-- 正文 -->
-<main class="reader-main" id="reader-main">
+<main class="reader-main" id="reader-main" role="main">
   <div id="reader-state" class="reader-state">
     <div class="spinner ink"></div>
     <p class="small muted">正在打开…</p>
   </div>
 
-  <article id="reader-art" class="reader-art md-body hidden">
-    <section id="chapter-wrap">
-      <h2 class="chap-title" id="chap-title"></h2>
-      <div id="chap-body"></div>
-    </section>
+  <!-- 阅读模式正文根：article + schema.org Article（详见 assets/js/read.js 的 updateArticleMeta）
+       工具栏 / 目录抽屉 / 章节导航 / 页脚都刻意放在这个 article 之外。 -->
+  <article id="reader-art" class="reader-art md-body hidden"
+           itemscope itemtype="https://schema.org/Article" data-reader-root aria-label="正文">
+    <!-- 归属书籍信息（对阅读模式与搜索引擎可见，视觉上不占位） -->
+    <div class="vh" itemprop="isPartOf" itemscope itemtype="https://schema.org/Book">
+      <meta itemprop="name" id="art-book-name">
+      <meta itemprop="url" id="art-book-url">
+      <meta itemprop="inLanguage" content="zh-CN">
+    </div>
+    <div class="vh" itemprop="author" itemscope itemtype="https://schema.org/Person">
+      <meta itemprop="name" id="art-author">
+    </div>
+    <meta itemprop="inLanguage" content="zh-CN">
+    <meta itemprop="dateModified" id="art-time" content="">
 
-    <nav class="chap-nav" id="chap-nav">
+    <section id="chapter-wrap">
+      <h1 class="chap-title" id="chap-title" itemprop="headline"></h1>
+      <div id="chap-body" itemprop="articleBody"></div>
+    </section>
+  </article>
+
+  <!-- 章节导航与页脚：刻意留在 article 外，阅读模式里只留正文。
+       初始也给 .hidden，否则加载中会先露出两个空按钮（与改动前不一致）。 -->
+  <div class="reader-extra hidden" id="reader-extra">
+    <nav class="chap-nav" id="chap-nav" aria-label="章节导航">
       <button id="btn-prev" class="btn btn-sm">← 上一章</button>
       <button id="btn-toc2" class="btn btn-sm btn-ghost">目录</button>
       <button id="btn-next" class="btn btn-sm">下一章 →</button>
@@ -112,7 +137,7 @@
     <footer class="book-foot">
       <span>本页内容以密文形式存储于书籍仓库，由你的浏览器解密显示。</span>
     </footer>
-  </article>
+  </div>
 </main>
 
 <script src="assets/js/config.js"></script>
@@ -130,5 +155,7 @@
 <script src="assets/js/core/fav.js"></script>
 <script src="assets/js/core/nav.js"></script>
 <script src="assets/js/read.js"></script>
+<!-- 结构化数据：静态骨架即使 JS 未执行也能被解析，read.js 只负责填具体值 -->
+<script type="application/ld+json" id="ld-article">{"@context":"https://schema.org","@type":"Article","inLanguage":"zh-CN","publisher":{"@type":"Organization","name":"群书阁","alternateName":"BookBlackNet"},"isPartOf":{"@type":"Book","inLanguage":"zh-CN"}}</script>
 </body>
 </html>

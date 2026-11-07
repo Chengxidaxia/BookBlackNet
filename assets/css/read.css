@@ -158,6 +158,24 @@ body.reading[data-theme="night"] .reader-bar { background: rgba(20, 21, 26, .86)
   font-family: var(--rfont); font-size: var(--rfs); line-height: var(--rlh);
 }
 
+/* 章节导航 + 页脚（刻意放在 <article> 外面，阅读模式只留正文） */
+.reader-extra {
+  width: 100%; max-width: var(--rw); margin: 0 auto;
+}
+
+/* 只给机器读的内容：占住 DOM 与无障碍树，但不占版面。
+   注意不要用 display:none —— 阅读模式与微数据解析会直接跳过它。 */
+.vh {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* 书籍信息头 */
 .book-head { text-align: center; padding: 8px 0 34px; }
 .bh-cover {
@@ -187,9 +205,18 @@ body.reading[data-theme="night"] .reader-bar { background: rgba(20, 21, 26, .86)
 .bh-line { width: 46px; height: 2px; background: var(--line-2); margin: 30px auto 0; border-radius: 2px; }
 
 /* 章节 */
+/* 标题是 h1（阅读模式 / 搜索引擎要把这一章当成文章标题），但视觉必须与
+   改动前的 h2 完全一致 —— .md-body h1 会把它推到 1.6em、行高 1.4、margin 1.8em，
+   所以下面用更高特异性把这些值按回 h2 当年的取值。改这里之前先量一遍。 */
 .chap-title {
   font-size: 1.22em; text-align: center; margin: 26px 0 30px;
   letter-spacing: .04em; font-weight: 600;
+}
+.reader-art .chap-title {
+  font-size: 1.34em;          /* 原 .md-body h2 */
+  line-height: 1.4;           /* 原 .md-body h2 */
+  margin: 1.8em 0 .7em;       /* 原 .md-body h2 */
+  letter-spacing: .02em;      /* 原 .md-body h2 */
 }
 .chap-title::after {
   content: ""; display: block; width: 28px; height: 1px;
