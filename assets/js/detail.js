@@ -153,10 +153,10 @@ window.BKN = window.BKN || {};
     state.remove();
     wrap.appendChild(info);
 
-    // 收录于（作品集）：放在主信息与目录之间；异步、失败不显示
-    renderCollections(entry);
-    // 目录放在信息区下方（不阻塞主信息渲染：先画骨架，再去取正文清单）
+    // 目录紧接主信息（不阻塞主信息渲染：先画骨架，再去取正文清单）
     renderChapters(entry);
+    // 收录于（作品集）放在目录下方；异步、失败不显示
+    renderCollections(entry);
   }
 
   /* ============================================================

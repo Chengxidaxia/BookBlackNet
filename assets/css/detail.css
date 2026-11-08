@@ -289,8 +289,8 @@
    一致、且除最后一行外每行都是满的。
    ============================================================ */
 .dt-chaps {
-  margin-top: 56px;
-  padding-top: 28px;
+  margin-top: 34px;
+  padding-top: 22px;
   border-top: 1px solid var(--line, rgba(0, 0, 0, .1));
 }
 
@@ -435,7 +435,7 @@
   .dtc-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 @media (max-width: 767px) {
-  .dt-chaps { margin-top: 40px; padding-top: 22px; }
+  .dt-chaps { margin-top: 26px; padding-top: 18px; }
   .dtc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
   .dtc-item { padding: 8px 9px; font-size: 12.5px; }
   .dtc-flag { display: none; }   /* 窄屏靠左侧色条 + 高亮，不再塞文字 */
