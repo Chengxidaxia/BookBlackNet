@@ -1,7 +1,7 @@
 {
   "format": "bookblacknet.index",
   "v": 1,
-  "updatedAt": "2026-11-07T13:27:54.758Z",
+  "updatedAt": "2026-11-14T10:45:29.076Z",
   "books": [
     {
       "id": "bk_mw66s4zj1v4rq8",
@@ -9,10 +9,14 @@
       "author": "cxdx",
       "intro": "[站长亲笔]一段关于两个初中生的故事。",
       "category": "R18G",
+      "categories": [
+        "R18G",
+        "言情"
+      ],
       "tags": [
         "R18",
-        "言情",
-        "穿越"
+        "穿越",
+        "第一视角"
       ],
       "status": "ongoing",
       "visibility": "public",
@@ -22,10 +26,11 @@
         "to": "#152a26",
         "text": "P"
       },
-      "chapters": 1,
-      "words": 453,
+      "chapters": 3,
+      "words": 759,
+      "createdAt": "2026-11-14T10:45:27.708Z",
+      "updatedAt": "2026-11-14T10:45:27.708Z",
       "account": "Chengxidaxia",
-      "updatedAt": "2026-11-07T13:27:54.758Z",
       "file": "bk_mw66s4zj1v4rq8.book",
       "chunks": 1
     },
